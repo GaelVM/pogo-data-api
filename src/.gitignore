@@ -1,0 +1,9 @@
+node_modules/
+dist/
+.env
+coverage/
+public/
+data/raw/*.json
+!data/raw/.gitkeep
+*.log
+.DS_Store
