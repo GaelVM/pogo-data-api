@@ -67,6 +67,149 @@ function values<T>(dictionary?: Dictionary<T>): T[] {
   return dictionary ? Object.values(dictionary) : []
 }
 
+type LooseRecord = Record<string, unknown>
+
+function record(value: unknown): LooseRecord {
+  return value !== null && typeof value === 'object' ? (value as LooseRecord) : {}
+}
+
+function field<T>(source: LooseRecord, ...names: string[]): T | undefined {
+  for (const name of names) if (source[name] !== undefined) return source[name] as T
+  return undefined
+}
+
+function normalizeTypes(source: unknown): Dictionary<{ typeId: number; typeName: string }> {
+  return Object.fromEntries(
+    Object.entries(record(source)).flatMap(([key, value]) => {
+      const item = record(value)
+      const typeId = Number(field(item, 'typeId', 'type_id') ?? key)
+      const typeName = typeof value === 'string' ? value : field<string>(item, 'typeName', 'type_name', 'name')
+      return typeId > 0 && typeName ? [[String(typeId), { typeId, typeName }]] : []
+    }),
+  )
+}
+
+function normalizeMoveReferences(source: unknown): Dictionary<MasterMoveReference> {
+  return Object.fromEntries(
+    Object.entries(record(source)).flatMap(([key, value]) => {
+      const item = record(value)
+      const moveId = Number(field(item, 'moveId', 'move_id', 'id') ?? key)
+      const moveName = typeof value === 'string' ? value : field<string>(item, 'moveName', 'move_name', 'name')
+      if (!(moveId > 0) || !moveName) return []
+      return [[String(moveId), {
+        moveId,
+        moveName,
+        proto: field(item, 'proto'),
+        type: field(item, 'typeId', 'type_id', 'type'),
+        power: field(item, 'power'),
+        energy: field(item, 'energy'),
+        duration: field(item, 'duration', 'durationMs', 'duration_ms'),
+      }]]
+    }),
+  )
+}
+
+function normalizeEvolutions(source: unknown): Dictionary<MasterEvolution> {
+  const entries = Array.isArray(source) ? source.entries() : Object.entries(record(source))
+  return Object.fromEntries(
+    [...entries].flatMap(([key, value]) => {
+      const item = record(value)
+      const pokemon = Number(field(item, 'pokemon', 'evoId', 'evo_id') ?? key)
+      if (!(pokemon > 0)) return []
+      return [[String(key), {
+        pokemon,
+        form: field(item, 'form', 'formId', 'form_id'),
+        candyCost: field(item, 'candyCost', 'candy_cost'),
+        item: field(item, 'item', 'itemRequirement', 'item_requirement'),
+      }]]
+    }),
+  )
+}
+
+function optionalDictionary<T>(source: unknown, convert: (value: unknown) => Dictionary<T>) {
+  return source === undefined ? undefined : convert(source)
+}
+
+function stats(source: LooseRecord) {
+  const nested = record(source.stats)
+  const result = {
+    attack: field<number>(source, 'attack') ?? field<number>(nested, 'attack'),
+    defense: field<number>(source, 'defense') ?? field<number>(nested, 'defense'),
+    stamina: field<number>(source, 'stamina') ?? field<number>(nested, 'stamina'),
+  }
+  return Object.values(result).some((value) => value !== undefined) ? result : undefined
+}
+
+function adaptGeneratedMasterfile(input: Masterfile): Masterfile {
+  const raw = input as unknown as LooseRecord
+  const types = normalizeTypes(raw.types)
+  const pokemon = Object.fromEntries(
+    Object.entries(record(raw.pokemon)).flatMap(([key, value]) => {
+      const item = record(value)
+      const pokedexId = Number(field(item, 'pokedexId', 'pokedex_id') ?? key)
+      const name = field<string>(item, 'name', 'pokemonName', 'pokemon_name')
+      if (!(pokedexId > 0) || !name) return []
+      const forms = Object.fromEntries(Object.entries(record(item.forms)).map(([formKey, formValue]) => {
+        const form = record(formValue)
+        const formId = Number(field(form, 'form', 'formId', 'form_id') ?? formKey)
+        return [formKey, {
+          name: field<string>(form, 'name', 'formName', 'form_name') ?? 'Normal',
+          proto: field<string>(form, 'proto'),
+          form: formId,
+          isCostume: field<boolean>(form, 'isCostume', 'is_costume'),
+          stats: stats(form),
+          types: optionalDictionary(form.types, normalizeTypes),
+          quickMoves: optionalDictionary(field(form, 'quickMoves', 'quick_moves'), normalizeMoveReferences),
+          chargedMoves: optionalDictionary(field(form, 'chargedMoves', 'charged_moves'), normalizeMoveReferences),
+          evolutions: optionalDictionary(form.evolutions, normalizeEvolutions),
+          height: field<number>(form, 'height'),
+          weight: field<number>(form, 'weight'),
+        }]
+      }))
+      return [[key, {
+        name,
+        pokedexId,
+        defaultFormId: field(item, 'defaultFormId', 'default_form_id'),
+        genId: field(item, 'genId', 'gen_id'),
+        generation: field(item, 'generation'),
+        family: field(item, 'family'),
+        legendary: field(item, 'legendary'),
+        mythic: field(item, 'mythic'),
+        ultraBeast: field(item, 'ultraBeast', 'ultra_beast'),
+        stats: stats(item),
+        types: optionalDictionary(item.types, normalizeTypes),
+        forms,
+        quickMoves: normalizeMoveReferences(field(item, 'quickMoves', 'quick_moves')),
+        chargedMoves: normalizeMoveReferences(field(item, 'chargedMoves', 'charged_moves')),
+        evolutions: optionalDictionary(item.evolutions, normalizeEvolutions),
+        height: field(item, 'height'),
+        weight: field(item, 'weight'),
+        misc: {
+          buddyDistance: field(item, 'buddyDistance', 'buddy_distance'),
+          thirdMoveStardust: field(item, 'thirdMoveStardust', 'third_move_stardust'),
+          thirdMoveCandy: field(item, 'thirdMoveCandy', 'third_move_candy'),
+          tradable: field(item, 'tradable'),
+          transferable: field(item, 'transferable'),
+        },
+      }]]
+    }),
+  )
+  const typeIdByName = new Map(Object.values(types).map((type) => [makeSlug(type.typeName), type.typeId]))
+  const moves = Object.fromEntries(Object.entries(record(raw.moves)).flatMap(([key, value]) => {
+    const item = record(value)
+    const id = Number(field(item, 'id', 'moveId', 'move_id') ?? key)
+    const name = field<string>(item, 'name', 'moveName', 'move_name')
+    if (!(id > 0) || !name) return []
+    const rawType = field<unknown>(item, 'type', 'typeId', 'type_id')
+    const typeObject = record(rawType)
+    const type = typeof rawType === 'number' ? rawType
+      : typeof rawType === 'string' ? typeIdByName.get(makeSlug(rawType))
+      : field<number>(typeObject, 'typeId', 'type_id', 'id')
+    return [[key, { id, name, proto: field(item, 'proto'), type, power: field(item, 'power'), energy: field(item, 'energy'), duration: field(item, 'duration') }]]
+  }))
+  return { pokemon, forms: {}, types, moves } as unknown as Masterfile
+}
+
 function mergeMove(
   target: Map<number, NormalizedMove>,
   move: MasterMoveReference,
@@ -136,6 +279,8 @@ export function normalizeMasterfile(masterfile: Masterfile): NormalizedDataset {
   if (!masterfile.pokemon || !masterfile.types || !masterfile.moves) {
     throw new Error('El archivo no contiene pokemon, types y moves')
   }
+
+  masterfile = adaptGeneratedMasterfile(masterfile)
 
   const moves = new Map<number, NormalizedMove>()
   values(masterfile.moves).forEach((move) => {

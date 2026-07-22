@@ -37,4 +37,30 @@ describe('normalizeMasterfile', () => {
     })
     expect(bulbasaur?.evolutions[0]).toMatchObject({ pokemon: 2, candyCost: 25 })
   })
+
+  it('acepta el formato snake_case producido por pogo-data-generator', () => {
+    const result = normalizeMasterfile({
+      pokemon: {
+        '25': {
+          pokedex_id: 25,
+          name: 'Pikachu',
+          default_form_id: 137,
+          gen_id: 1,
+          attack: 112,
+          defense: 96,
+          stamina: 111,
+          types: { '13': 'Electric' },
+          forms: { '137': { form_id: 137, name: 'Normal', types: { '13': 'Electric' } } },
+        },
+      },
+      forms: {},
+      types: { '13': 'Electric' },
+      moves: { '205': { id: 205, name: 'Thunder Shock', type: 'Electric', power: 5 } },
+    } as unknown as Masterfile)
+
+    expect(result.pokemon[0]).toMatchObject({ id: 25, name: 'Pikachu', generation: 1 })
+    expect(result.forms[0]).toMatchObject({ formId: 137, attack: 112, typeIds: [13] })
+    expect(result.types[0]).toEqual({ id: 13, slug: 'electric', name: 'Electric' })
+    expect(result.moves[0]).toMatchObject({ id: 205, typeId: 13 })
+  })
 })
