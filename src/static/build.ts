@@ -9,6 +9,7 @@ import { docsHtml } from './docs.js'
 import { pvpMovesets } from './pvp-movesets.js'
 import { EMPTY_LIVE_DATA, liveEndpoints, validateLiveData, type LiveData } from './live.js'
 import { dataDuckEvents, type DataDuckSnapshot } from './dataduck.js'
+import { availabilityDataset, globalSearch } from './availability.js'
 
 const API_VERSION = 'v1'
 
@@ -146,10 +147,11 @@ export async function buildStaticApi(masterfile: Masterfile, output = resolve('p
   const translationsRoot = resolve(apiRoot, 'translations')
   const liveRoot = resolve(apiRoot, 'live')
   const liveEventsRoot = resolve(liveRoot, 'events')
+  const availabilityIndexRoot = resolve(apiRoot, 'indexes/by-availability')
   await Promise.all([pokemonRoot, typeIndexRoot, generationIndexRoot, rarityIndexRoot, statusIndexRoot]
     .map((path) => mkdir(path, { recursive: true })))
   await mkdir(translationsRoot, { recursive: true })
-  await Promise.all([liveRoot, liveEventsRoot].map((path) => mkdir(path, { recursive: true })))
+  await Promise.all([liveRoot, liveEventsRoot, availabilityIndexRoot].map((path) => mkdir(path, { recursive: true })))
 
   const evolutions = dataset.forms.flatMap((form) =>
     form.evolutions.map((evolution) => ({ fromPokemonId: form.pokemonId, fromFormId: form.formId, ...evolution })),
@@ -165,6 +167,7 @@ export async function buildStaticApi(masterfile: Masterfile, output = resolve('p
   const localized = translations(masterfile.translations)
   const pvp = pvpRankings(dataset)
   const live = liveEndpoints(validateLiveData(liveData))
+  const availability = availabilityDataset(dataset, dataDuck, live.events)
   const translationManifest = {
     defaultLocale: 'en',
     locales: Object.keys(localized).map((locale) => ({ locale, url: `translations/${locale}.json` })),
@@ -196,6 +199,9 @@ export async function buildStaticApi(masterfile: Masterfile, output = resolve('p
     writeJson(resolve(liveRoot, 'research.json'), dataDuck?.research ?? []),
     writeJson(resolve(liveRoot, 'rocket.json'), dataDuck?.rocket ?? []),
     writeJson(resolve(liveRoot, 'dataduck-meta.json'), dataDuck?.meta ?? { source: 'GaelVM/DataDuck', available: false }),
+    writeJson(resolve(apiRoot, 'availability.json'), availability),
+    writeJson(resolve(apiRoot, 'search.json'), globalSearch(dataset, availability)),
+    ...['raids', 'eggs', 'research', 'rocket', 'events'].map((source) => writeJson(resolve(availabilityIndexRoot, `${source}.json`), availability.filter((entry) => entry.sources.includes(source)))),
     writeJson(resolve(apiRoot, 'temporary-evolutions.json'), temporaryEvolutions(dataset)),
     writeJson(resolve(apiRoot, 'items.json'), catalog(masterfile.items)),
     writeJson(resolve(apiRoot, 'quest-types.json'), catalog(masterfile.questTypes)),
@@ -216,6 +222,11 @@ export async function buildStaticApi(masterfile: Masterfile, output = resolve('p
     writeFile(resolve(output, 'index.html'), docsHtml(), 'utf8'),
     writeFile(resolve(output, '.nojekyll'), '', 'utf8'),
     ...pokemon.map((entry) => writeJson(resolve(pokemonRoot, `${entry.id}.json`), entry)),
+    ...availability.map(async (entry) => {
+      const root = resolve(pokemonRoot, String(entry.pokemonId))
+      await mkdir(root, { recursive: true })
+      await writeJson(resolve(root, 'availability.json'), entry)
+    }),
     writeJson(resolve(rarityIndexRoot, 'legendary.json'), pokemon.filter((entry) => entry.legendary)),
     writeJson(resolve(rarityIndexRoot, 'mythic.json'), pokemon.filter((entry) => entry.mythic)),
     writeJson(resolve(rarityIndexRoot, 'ultra-beast.json'), pokemon.filter((entry) => entry.ultraBeast)),

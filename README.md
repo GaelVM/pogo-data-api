@@ -51,6 +51,10 @@ https://gaelvm.github.io/pogo-data-api
 | `/v1/live/eggs.json` | Pools de huevos importados desde DataDuck |
 | `/v1/live/research.json` | Investigaciones actuales importadas desde DataDuck |
 | `/v1/live/rocket.json` | Equipos del Team GO Rocket importados desde DataDuck |
+| `/v1/availability.json` | Disponibilidad unificada de todos los Pokémon |
+| `/v1/pokemon/{id}/availability.json` | Disponibilidad individual por número de Pokédex |
+| `/v1/indexes/by-availability/{source}.json` | Índices para raids, eggs, research, rocket y events |
+| `/v1/search.json` | Índice global para buscadores y autocompletado |
 
 ### Datos dinámicos propios
 

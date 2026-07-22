@@ -36,6 +36,9 @@ const endpoints = [
   ['Sistema', 'Metadatos', 'v1/meta.json', 'Versión, fuente, fecha y cantidades.'],
   ['Recursos', 'Explorador', 'v1/explorer.json', 'Índice compacto para construir interfaces visuales.'],
   ['Recursos', 'Sprites', 'v1/sprites.json', 'Sprites de Pokémon GO con URLs de respaldo.'],
+  ['Recursos', 'Buscador global', 'v1/search.json', 'Índice compacto de especies, formas y disponibilidad.'],
+  ['En vivo', 'Disponibilidad', 'v1/availability.json', 'Disponibilidad unificada por Pokémon y fuente.'],
+  ['En vivo', 'Índice de incursiones', 'v1/indexes/by-availability/raids.json', 'Pokémon actualmente detectados en incursiones.'],
 ] as const
 
 function endpointCards() {
