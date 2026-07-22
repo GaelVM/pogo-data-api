@@ -34,6 +34,8 @@ jobs:
       - name: Download current dataset
         if: github.event_name == 'schedule' || (github.event_name == 'workflow_dispatch' && inputs.refresh_data)
         run: npm run data:generate
+      - name: Import DataDuck live data
+        run: npm run data:dataduck
       - run: npm run static:build
       - run: npm test
       - uses: actions/configure-pages@v5

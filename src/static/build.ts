@@ -8,6 +8,7 @@ import { combatDataset, combatRankings, formCombat, pvpRankings } from './combat
 import { docsHtml } from './docs.js'
 import { pvpMovesets } from './pvp-movesets.js'
 import { EMPTY_LIVE_DATA, liveEndpoints, validateLiveData, type LiveData } from './live.js'
+import { dataDuckEvents, type DataDuckSnapshot } from './dataduck.js'
 
 const API_VERSION = 'v1'
 
@@ -133,7 +134,7 @@ function explorer(dataset: NormalizedDataset) {
   })
 }
 
-export async function buildStaticApi(masterfile: Masterfile, output = resolve('public'), sourceFile = 'unknown', liveData: LiveData = EMPTY_LIVE_DATA) {
+export async function buildStaticApi(masterfile: Masterfile, output = resolve('public'), sourceFile = 'unknown', liveData: LiveData = EMPTY_LIVE_DATA, dataDuck?: DataDuckSnapshot) {
   const dataset = normalizeMasterfile(masterfile)
   const pokemon = pokemonDocuments(dataset)
   const apiRoot = resolve(output, API_VERSION)
@@ -190,6 +191,11 @@ export async function buildStaticApi(masterfile: Masterfile, output = resolve('p
     writeJson(resolve(liveRoot, 'active-raids.json'), live.activeRaids),
     writeJson(resolve(liveRoot, 'upcoming-raids.json'), live.upcomingRaids),
     writeJson(resolve(liveRoot, 'calendar.json'), live.calendar),
+    writeJson(resolve(liveRoot, 'raid-bosses.json'), dataDuck?.raids ?? []),
+    writeJson(resolve(liveRoot, 'eggs.json'), dataDuck?.eggs ?? []),
+    writeJson(resolve(liveRoot, 'research.json'), dataDuck?.research ?? []),
+    writeJson(resolve(liveRoot, 'rocket.json'), dataDuck?.rocket ?? []),
+    writeJson(resolve(liveRoot, 'dataduck-meta.json'), dataDuck?.meta ?? { source: 'GaelVM/DataDuck', available: false }),
     writeJson(resolve(apiRoot, 'temporary-evolutions.json'), temporaryEvolutions(dataset)),
     writeJson(resolve(apiRoot, 'items.json'), catalog(masterfile.items)),
     writeJson(resolve(apiRoot, 'quest-types.json'), catalog(masterfile.questTypes)),
@@ -239,7 +245,18 @@ async function main() {
   const masterfile = JSON.parse(await readFile(input, 'utf8')) as Masterfile
   const eventsFile = JSON.parse(await readFile(resolve('data/curated/events.json'), 'utf8')) as Pick<LiveData, 'timezone' | 'events'>
   const raidsFile = JSON.parse(await readFile(resolve('data/curated/raid-bosses.json'), 'utf8')) as Pick<LiveData, 'raids'>
-  const metadata = await buildStaticApi(masterfile, resolve('public'), input, { timezone: eventsFile.timezone, events: eventsFile.events, raids: raidsFile.raids })
+  const externalRoot = resolve('data/external/dataduck')
+  const readExternal = async (file: string, fallback: unknown) => readFile(resolve(externalRoot, file), 'utf8').then(JSON.parse).catch(() => fallback)
+  const dataDuck: DataDuckSnapshot = {
+    meta: await readExternal('meta.json', {}) as Record<string, unknown>,
+    events: await readExternal('events.json', []) as DataDuckSnapshot['events'],
+    raids: await readExternal('raids.json', []) as unknown[],
+    eggs: await readExternal('eggs.json', []) as unknown[],
+    research: await readExternal('research.json', []) as unknown[],
+    rocket: await readExternal('rocket.json', []) as unknown[],
+  }
+  const importedEvents = dataDuckEvents(dataDuck.events)
+  const metadata = await buildStaticApi(masterfile, resolve('public'), input, { timezone: eventsFile.timezone, events: [...eventsFile.events, ...importedEvents], raids: raidsFile.raids }, dataDuck)
   console.log(`API ${metadata.apiVersion} generada desde ${input}: ${metadata.counts.pokemon} Pokémon`)
 }
 

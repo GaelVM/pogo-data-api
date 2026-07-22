@@ -47,10 +47,16 @@ https://gaelvm.github.io/pogo-data-api
 | `/v1/live/events/upcoming.json` | Próximos eventos |
 | `/v1/live/active-raids.json` | Jefes de incursión activos |
 | `/v1/live/calendar.json` | Calendario combinado de eventos e incursiones |
+| `/v1/live/raid-bosses.json` | Rotación actual de incursiones importada desde DataDuck |
+| `/v1/live/eggs.json` | Pools de huevos importados desde DataDuck |
+| `/v1/live/research.json` | Investigaciones actuales importadas desde DataDuck |
+| `/v1/live/rocket.json` | Equipos del Team GO Rocket importados desde DataDuck |
 
 ### Datos dinámicos propios
 
 Edita `data/curated/events.json` y `data/curated/raid-bosses.json` directamente desde GitHub. Usa fechas ISO 8601 con zona horaria, por ejemplo `2026-07-22T18:00:00-05:00`. Cada ejecución de GitHub Actions valida las fechas y vuelve a clasificar automáticamente los registros como `active`, `upcoming` o `past`.
+
+GitHub Actions también ejecuta `npm run data:dataduck` para importar automáticamente la rama `data` de `GaelVM/DataDuck`. DataDuck actúa como recolector; esta API conserva rutas y esquemas de publicación estables.
 
 Las traducciones se publican aparte para que cada cliente descargue únicamente el idioma que necesita. Sus claves cubren Pokémon, formas, movimientos, objetos, tipos, clima, misiones y textos diversos del juego.
 

@@ -21,6 +21,7 @@
     "db:migrate": "prisma migrate dev",
     "db:deploy": "prisma migrate deploy",
     "data:generate": "tsx src/importer/generate-snapshot.ts",
+    "data:dataduck": "tsx src/importer/import-dataduck.ts",
     "data:import": "tsx src/importer/import-snapshot.ts",
     "data:seed": "tsx prisma/seed.ts"
   },

@@ -8,6 +8,8 @@ export interface LiveEvent {
   bonuses?: string[]
   featuredPokemonIds?: number[]
   sourceUrl?: string
+  imageUrl?: string
+  extraData?: unknown
 }
 
 export interface RaidBoss {
@@ -70,4 +72,3 @@ export function liveEndpoints(input: LiveData, now = new Date()) {
     calendar: [...events.map((entry) => ({ kind: 'event', ...entry })), ...raids.map((entry) => ({ kind: 'raid', ...entry }))].sort((a, b) => Date.parse(a.startsAt) - Date.parse(b.startsAt)),
   }
 }
-
