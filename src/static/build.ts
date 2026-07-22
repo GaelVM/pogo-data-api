@@ -13,6 +13,7 @@ import { availabilityDataset, globalSearch } from './availability.js'
 import { changesDataset } from './changes.js'
 import { raidGuides } from './raid-guides.js'
 import { ivCalculatorConfig, ivRankingFiles } from './iv-rankings.js'
+import { localizedCatalog, pokemonI18n, SUPPORTED_LOCALES } from './i18n.js'
 
 const API_VERSION = 'v1'
 
@@ -155,10 +156,12 @@ export async function buildStaticApi(masterfile: Masterfile, output = resolve('p
   const historyRoot = resolve(apiRoot, 'history')
   const raidGuidesRoot = resolve(apiRoot, 'raid-guides')
   const ivRoot = resolve(apiRoot, 'iv-rankings')
+  const localesRoot = resolve(apiRoot, 'locales')
+  const i18nPokemonRoot = resolve(apiRoot, 'i18n/pokemon')
   await Promise.all([pokemonRoot, typeIndexRoot, generationIndexRoot, rarityIndexRoot, statusIndexRoot]
     .map((path) => mkdir(path, { recursive: true })))
   await mkdir(translationsRoot, { recursive: true })
-  await Promise.all([liveRoot, liveEventsRoot, availabilityIndexRoot, changesRoot, historyRoot, raidGuidesRoot, ivRoot, ...['great', 'ultra', 'master'].map((league) => resolve(ivRoot, league))].map((path) => mkdir(path, { recursive: true })))
+  await Promise.all([liveRoot, liveEventsRoot, availabilityIndexRoot, changesRoot, historyRoot, raidGuidesRoot, ivRoot, localesRoot, i18nPokemonRoot, ...['great', 'ultra', 'master'].map((league) => resolve(ivRoot, league)), ...SUPPORTED_LOCALES.map((locale) => resolve(localesRoot, locale))].map((path) => mkdir(path, { recursive: true })))
 
   const evolutions = dataset.forms.flatMap((form) =>
     form.evolutions.map((evolution) => ({ fromPokemonId: form.pokemonId, fromFormId: form.formId, ...evolution })),
@@ -172,6 +175,7 @@ export async function buildStaticApi(masterfile: Masterfile, output = resolve('p
     counts: { pokemon: pokemon.length, forms: dataset.forms.length, types: dataset.types.length, moves: dataset.moves.length },
   }
   const localized = translations(masterfile.translations)
+  const localeCatalogs = SUPPORTED_LOCALES.map((locale) => localizedCatalog(dataset, locale, localized[locale]))
   const pvp = pvpRankings(dataset)
   const live = liveEndpoints(validateLiveData(liveData))
   const availability = availabilityDataset(dataset, dataDuck, live.events)
@@ -180,7 +184,7 @@ export async function buildStaticApi(masterfile: Masterfile, output = resolve('p
   const ivFiles = ivRankingFiles(dataset)
   const translationManifest = {
     defaultLocale: 'en',
-    locales: Object.keys(localized).map((locale) => ({ locale, url: `translations/${locale}.json` })),
+    locales: localeCatalogs.map((catalog) => ({ locale: catalog.locale, rawUrl: `translations/${catalog.locale}.json`, apiRoot: `locales/${catalog.locale}/` })),
   }
 
   await Promise.all([
@@ -220,6 +224,13 @@ export async function buildStaticApi(masterfile: Masterfile, output = resolve('p
     writeJson(resolve(ivRoot, 'config.json'), ivCalculatorConfig()),
     writeJson(resolve(ivRoot, 'index.json'), ivFiles.map((entry) => ({ league: entry.league, pokemonId: entry.pokemonId, pokemonName: entry.pokemonName, url: `${entry.league}/${entry.pokemonId}.json` }))),
     ...ivFiles.map((entry) => writeJson(resolve(ivRoot, entry.league, `${entry.pokemonId}.json`), entry)),
+    ...localeCatalogs.flatMap((catalog) => {
+      const root = resolve(localesRoot, catalog.locale)
+      return [writeJson(resolve(root, 'meta.json'), { locale: catalog.locale, fallbackLocale: catalog.fallbackLocale, counts: { pokemon: catalog.pokemon.length, forms: catalog.forms.length, moves: catalog.moves.length, types: catalog.types.length } }),
+        writeJson(resolve(root, 'ui.json'), catalog.ui), writeJson(resolve(root, 'pokedex.json'), catalog.pokemon),
+        writeJson(resolve(root, 'forms.json'), catalog.forms), writeJson(resolve(root, 'moves.json'), catalog.moves), writeJson(resolve(root, 'types.json'), catalog.types)]
+    }),
+    ...dataset.pokemon.map((entry) => writeJson(resolve(i18nPokemonRoot, `${entry.id}.json`), pokemonI18n(entry.id, localeCatalogs))),
     ...['raids', 'eggs', 'research', 'rocket', 'events'].map((source) => writeJson(resolve(availabilityIndexRoot, `${source}.json`), availability.filter((entry) => entry.sources.includes(source)))),
     writeJson(resolve(apiRoot, 'temporary-evolutions.json'), temporaryEvolutions(dataset)),
     writeJson(resolve(apiRoot, 'items.json'), catalog(masterfile.items)),
@@ -251,7 +262,7 @@ export async function buildStaticApi(masterfile: Masterfile, output = resolve('p
     writeJson(resolve(rarityIndexRoot, 'ultra-beast.json'), pokemon.filter((entry) => entry.ultraBeast)),
     writeJson(resolve(statusIndexRoot, 'released.json'), pokemon.filter((entry) => !entry.unreleased)),
     writeJson(resolve(statusIndexRoot, 'unreleased.json'), pokemon.filter((entry) => entry.unreleased)),
-    ...Object.entries(localized).map(([locale, values]) => writeJson(resolve(translationsRoot, `${locale}.json`), values)),
+    ...SUPPORTED_LOCALES.map((locale) => writeJson(resolve(translationsRoot, `${locale}.json`), localized[locale] ?? {})),
   ])
 
   for (const type of dataset.types) {

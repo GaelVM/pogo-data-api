@@ -63,6 +63,10 @@ https://gaelvm.github.io/pogo-data-api
 | `/v1/iv-rankings/index.json` | Índice de rankings IV disponibles |
 | `/v1/iv-rankings/{league}/{pokemonId}.json` | Top 100 IV para great, ultra o master |
 | `/v1/iv-rankings/config.json` | Tabla de niveles y configuración para calcular las 4096 combinaciones |
+| `/v1/locales/{locale}/pokedex.json` | Pokédex localizada para en, es o es-mx |
+| `/v1/locales/{locale}/moves.json` | Movimientos localizados con fallback en inglés |
+| `/v1/locales/{locale}/types.json` | Tipos localizados |
+| `/v1/i18n/pokemon/{id}.json` | Nombres de una especie en todos los idiomas soportados |
 
 ### Datos dinámicos propios
 
