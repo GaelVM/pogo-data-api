@@ -22,6 +22,19 @@ export interface MasterEvolution {
   item?: number
 }
 
+export interface MasterTemporaryEvolution {
+  id: number
+  attack?: number
+  defense?: number
+  stamina?: number
+  height?: number
+  weight?: number
+  typeIds: number[]
+  unreleased?: boolean
+  firstEnergyCost?: number
+  subsequentEnergyCost?: number
+}
+
 export interface MasterForm {
   name: string
   proto?: string
@@ -34,6 +47,7 @@ export interface MasterForm {
   eliteQuickMoves?: Dictionary<MasterMoveReference>
   eliteChargedMoves?: Dictionary<MasterMoveReference>
   evolutions?: Dictionary<MasterEvolution>
+  temporaryEvolutions?: Dictionary<MasterTemporaryEvolution>
   height?: number
   weight?: number
 }
@@ -48,6 +62,7 @@ export interface MasterPokemon {
   legendary?: boolean
   mythic?: boolean
   ultraBeast?: boolean
+  unreleased?: boolean
   stats?: { attack?: number; defense?: number; stamina?: number }
   types?: Dictionary<MasterType>
   forms?: Dictionary<MasterForm>
@@ -56,6 +71,7 @@ export interface MasterPokemon {
   eliteQuickMoves?: Dictionary<MasterMoveReference>
   eliteChargedMoves?: Dictionary<MasterMoveReference>
   evolutions?: Dictionary<MasterEvolution>
+  temporaryEvolutions?: Dictionary<MasterTemporaryEvolution>
   height?: number
   weight?: number
   misc?: {

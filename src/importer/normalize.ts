@@ -5,6 +5,7 @@ import type {
   MasterForm,
   MasterMoveReference,
   MasterPokemon,
+  MasterTemporaryEvolution,
   Masterfile,
 } from './types.js'
 
@@ -54,6 +55,7 @@ export interface NormalizedForm {
   typeIds: number[]
   moves: Array<{ moveId: number; availability: 'NORMAL' | 'ELITE' }>
   evolutions: MasterEvolution[]
+  temporaryEvolutions: MasterTemporaryEvolution[]
 }
 
 export interface NormalizedDataset {
@@ -67,6 +69,7 @@ export interface NormalizedDataset {
     legendary: boolean
     mythic: boolean
     ultraBeast: boolean
+    unreleased: boolean
   }>
   forms: NormalizedForm[]
   types: Array<{ id: number; slug: string; name: string }>
@@ -136,6 +139,24 @@ function normalizeEvolutions(source: unknown): Dictionary<MasterEvolution> {
   )
 }
 
+function normalizeTemporaryEvolutions(source: unknown): Dictionary<MasterTemporaryEvolution> {
+  const entries = Array.isArray(source) ? source.entries() : Object.entries(record(source))
+  return Object.fromEntries([...entries].flatMap(([key, value]) => {
+    const item = record(value)
+    const id = Number(field(item, 'id', 'tempEvoId', 'temp_evo_id') ?? key)
+    if (!(id > 0)) return []
+    return [[String(id), {
+      id,
+      attack: field(item, 'attack'), defense: field(item, 'defense'), stamina: field(item, 'stamina'),
+      height: field(item, 'height'), weight: field(item, 'weight'),
+      typeIds: Object.values(normalizeTypes(item.types)).map((type) => type.typeId),
+      unreleased: field(item, 'unreleased'),
+      firstEnergyCost: field(item, 'firstEnergyCost', 'first_energy_cost'),
+      subsequentEnergyCost: field(item, 'subsequentEnergyCost', 'subsequent_energy_cost'),
+    }]]
+  }))
+}
+
 function optionalDictionary<T>(source: unknown, convert: (value: unknown) => Dictionary<T>) {
   return source === undefined ? undefined : convert(source)
 }
@@ -174,6 +195,7 @@ function adaptGeneratedMasterfile(input: Masterfile): Masterfile {
           eliteQuickMoves: optionalDictionary(field(form, 'eliteQuickMoves', 'elite_quick_moves'), normalizeMoveReferences),
           eliteChargedMoves: optionalDictionary(field(form, 'eliteChargedMoves', 'elite_charged_moves'), normalizeMoveReferences),
           evolutions: optionalDictionary(form.evolutions, normalizeEvolutions),
+          temporaryEvolutions: optionalDictionary(field(form, 'tempEvolutions', 'temp_evolutions'), normalizeTemporaryEvolutions),
           height: field<number>(form, 'height'),
           weight: field<number>(form, 'weight'),
         }]
@@ -188,6 +210,7 @@ function adaptGeneratedMasterfile(input: Masterfile): Masterfile {
         legendary: field(item, 'legendary'),
         mythic: field(item, 'mythic'),
         ultraBeast: field(item, 'ultraBeast', 'ultra_beast'),
+        unreleased: field(item, 'unreleased'),
         stats: stats(item),
         types: optionalDictionary(item.types, normalizeTypes),
         forms,
@@ -196,6 +219,7 @@ function adaptGeneratedMasterfile(input: Masterfile): Masterfile {
         eliteQuickMoves: optionalDictionary(field(item, 'eliteQuickMoves', 'elite_quick_moves'), normalizeMoveReferences),
         eliteChargedMoves: optionalDictionary(field(item, 'eliteChargedMoves', 'elite_charged_moves'), normalizeMoveReferences),
         evolutions: optionalDictionary(item.evolutions, normalizeEvolutions),
+        temporaryEvolutions: optionalDictionary(field(item, 'tempEvolutions', 'temp_evolutions'), normalizeTemporaryEvolutions),
         height: field(item, 'height'),
         weight: field(item, 'weight'),
         misc: {
@@ -310,6 +334,7 @@ function normalizeForm(
     typeIds: values(types).map((type) => type.typeId).filter((id) => id > 0),
     moves: [...uniqueRelations.values()],
     evolutions: values(form.evolutions ?? (form.form === pokemon.defaultFormId ? pokemon.evolutions : undefined)),
+    temporaryEvolutions: values(form.temporaryEvolutions ?? pokemon.temporaryEvolutions),
   }
 }
 
@@ -352,6 +377,7 @@ export function normalizeMasterfile(masterfile: Masterfile): NormalizedDataset {
       legendary: entry.legendary ?? false,
       mythic: entry.mythic ?? false,
       ultraBeast: entry.ultraBeast ?? false,
+      unreleased: entry.unreleased ?? false,
     }))
 
   const forms = values(masterfile.pokemon)

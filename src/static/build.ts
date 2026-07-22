@@ -59,6 +59,17 @@ function families(dataset: NormalizedDataset) {
   })).sort((a, b) => a.familyId - b.familyId)
 }
 
+function temporaryEvolutions(dataset: NormalizedDataset) {
+  const pokemonById = new Map(dataset.pokemon.map((pokemon) => [pokemon.id, pokemon]))
+  return dataset.forms.flatMap((form) => form.temporaryEvolutions.map((evolution) => ({
+    pokemonId: form.pokemonId,
+    pokemonName: pokemonById.get(form.pokemonId)?.name,
+    formId: form.formId,
+    formName: form.name,
+    ...evolution,
+  })))
+}
+
 function docsHtml() {
   return `<!doctype html>
 <html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
@@ -77,6 +88,7 @@ code,a{color:#3157d5}li{margin:.55rem 0}.muted{color:#63708a}
 <li><a href="v1/families.json"><code>/v1/families.json</code></a></li>
 <li><a href="v1/combat.json"><code>/v1/combat.json</code></a></li>
 <li><a href="v1/rankings.json"><code>/v1/rankings.json</code></a></li>
+<li><a href="v1/temporary-evolutions.json"><code>/v1/temporary-evolutions.json</code></a></li>
 <li><a href="v1/meta.json"><code>/v1/meta.json</code></a></li>
 </ul><p>Cada Pokémon también está disponible en <code>/v1/pokemon/{id}.json</code>. Los índices precomputados están en <code>/v1/indexes/</code>.</p></section></body></html>`
 }
@@ -88,7 +100,10 @@ export async function buildStaticApi(masterfile: Masterfile, output = resolve('p
   const pokemonRoot = resolve(apiRoot, 'pokemon')
   const typeIndexRoot = resolve(apiRoot, 'indexes/by-type')
   const generationIndexRoot = resolve(apiRoot, 'indexes/by-generation')
-  await Promise.all([pokemonRoot, typeIndexRoot, generationIndexRoot].map((path) => mkdir(path, { recursive: true })))
+  const rarityIndexRoot = resolve(apiRoot, 'indexes/by-rarity')
+  const statusIndexRoot = resolve(apiRoot, 'indexes/by-status')
+  await Promise.all([pokemonRoot, typeIndexRoot, generationIndexRoot, rarityIndexRoot, statusIndexRoot]
+    .map((path) => mkdir(path, { recursive: true })))
 
   const evolutions = dataset.forms.flatMap((form) =>
     form.evolutions.map((evolution) => ({ fromPokemonId: form.pokemonId, fromFormId: form.formId, ...evolution })),
@@ -112,10 +127,16 @@ export async function buildStaticApi(masterfile: Masterfile, output = resolve('p
     writeJson(resolve(apiRoot, 'families.json'), families(dataset)),
     writeJson(resolve(apiRoot, 'combat.json'), combatDataset(dataset)),
     writeJson(resolve(apiRoot, 'rankings.json'), combatRankings(dataset)),
+    writeJson(resolve(apiRoot, 'temporary-evolutions.json'), temporaryEvolutions(dataset)),
     writeJson(resolve(apiRoot, 'meta.json'), metadata),
     writeFile(resolve(output, 'index.html'), docsHtml(), 'utf8'),
     writeFile(resolve(output, '.nojekyll'), '', 'utf8'),
     ...pokemon.map((entry) => writeJson(resolve(pokemonRoot, `${entry.id}.json`), entry)),
+    writeJson(resolve(rarityIndexRoot, 'legendary.json'), pokemon.filter((entry) => entry.legendary)),
+    writeJson(resolve(rarityIndexRoot, 'mythic.json'), pokemon.filter((entry) => entry.mythic)),
+    writeJson(resolve(rarityIndexRoot, 'ultra-beast.json'), pokemon.filter((entry) => entry.ultraBeast)),
+    writeJson(resolve(statusIndexRoot, 'released.json'), pokemon.filter((entry) => !entry.unreleased)),
+    writeJson(resolve(statusIndexRoot, 'unreleased.json'), pokemon.filter((entry) => entry.unreleased)),
   ])
 
   for (const type of dataset.types) {

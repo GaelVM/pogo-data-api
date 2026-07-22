@@ -58,6 +58,9 @@ describe('normalizeMasterfile', () => {
               elite_quick_moves: { '205': 'Thunder Shock' },
             },
           },
+          temp_evolutions: {
+            '1': { temp_evo_id: 1, attack: 200, defense: 180, stamina: 170, types: { '13': 'Electric' }, first_energy_cost: 200 },
+          },
         },
       },
       forms: {},
@@ -82,6 +85,7 @@ describe('normalizeMasterfile', () => {
     expect(result.forms[0]).toMatchObject({ formId: 137, attack: 112, typeIds: [13] })
     expect(result.types[0]).toEqual({ id: 13, slug: 'electric', name: 'Electric' })
     expect(result.forms[0]?.moves).toContainEqual({ moveId: 205, availability: 'ELITE' })
+    expect(result.forms[0]?.temporaryEvolutions[0]).toMatchObject({ id: 1, attack: 200, typeIds: [13], firstEnergyCost: 200 })
     expect(result.moves[0]).toMatchObject({
       id: 205,
       typeId: 13,

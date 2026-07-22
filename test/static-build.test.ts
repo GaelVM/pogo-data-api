@@ -13,11 +13,13 @@ describe('static API build', () => {
     const grass = JSON.parse(await readFile(resolve(output, 'v1/indexes/by-type/grass.json'), 'utf8'))
     const families = JSON.parse(await readFile(resolve(output, 'v1/families.json'), 'utf8'))
     const combat = JSON.parse(await readFile(resolve(output, 'v1/combat.json'), 'utf8'))
+    const released = JSON.parse(await readFile(resolve(output, 'v1/indexes/by-status/released.json'), 'utf8'))
 
     expect(meta.counts.pokemon).toBe(2)
     expect(bulbasaur.name).toBe('Bulbasaur')
     expect(grass.map((pokemon: { id: number }) => pokemon.id)).toEqual([1, 2])
     expect(families[0].members.map((pokemon: { id: number }) => pokemon.id)).toEqual([1, 2])
     expect(combat[0]).toMatchObject({ pokemonId: 1, maxCp: { level40: 1115, level50: 1260 } })
+    expect(released).toHaveLength(2)
   })
 })
