@@ -26,6 +26,7 @@ describe('static API build', () => {
     const availability = JSON.parse(await readFile(resolve(output, 'v1/pokemon/1/availability.json'), 'utf8'))
     const changes = JSON.parse(await readFile(resolve(output, 'v1/changes/latest.json'), 'utf8'))
     const raidGuideIndex = JSON.parse(await readFile(resolve(output, 'v1/raid-guides/index.json'), 'utf8'))
+    const ivBulbasaur = JSON.parse(await readFile(resolve(output, 'v1/iv-rankings/great/1.json'), 'utf8'))
 
     expect(meta.counts.pokemon).toBe(2)
     expect(bulbasaur.name).toBe('Bulbasaur')
@@ -48,5 +49,6 @@ describe('static API build', () => {
     expect(availability.pokemonId).toBe(1)
     expect(changes.hasPreviousSnapshot).toBe(false)
     expect(raidGuideIndex).toEqual([])
+    expect(ivBulbasaur.rankings[0].rank).toBe(1)
   })
 })

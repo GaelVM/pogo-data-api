@@ -60,6 +60,9 @@ https://gaelvm.github.io/pogo-data-api
 | `/v1/history/index.json` | Índice de snapshots de cambios disponibles |
 | `/v1/raid-guides/index.json` | Índice de guías para los jefes de incursión actuales |
 | `/v1/raid-guides/{pokemonId}.json` | Debilidades, resistencias, CP, clima y mejores counters |
+| `/v1/iv-rankings/index.json` | Índice de rankings IV disponibles |
+| `/v1/iv-rankings/{league}/{pokemonId}.json` | Top 100 IV para great, ultra o master |
+| `/v1/iv-rankings/config.json` | Tabla de niveles y configuración para calcular las 4096 combinaciones |
 
 ### Datos dinámicos propios
 

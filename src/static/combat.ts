@@ -15,7 +15,7 @@ const INTEGER_LEVEL_CPMS = [
   0.82029999, 0.82529999, 0.83029999, 0.83529999, 0.84029999,
 ]
 
-const LEVELS = INTEGER_LEVEL_CPMS.flatMap((cpm, index) => {
+export const LEVELS = INTEGER_LEVEL_CPMS.flatMap((cpm, index) => {
   const level = index + 1
   const next = INTEGER_LEVEL_CPMS[index + 1]
   return next ? [{ level, cpm }, { level: level + 0.5, cpm: Math.sqrt((cpm ** 2 + next ** 2) / 2) }] : [{ level, cpm }]
