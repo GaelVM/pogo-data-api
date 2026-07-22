@@ -102,11 +102,16 @@ function gigantamax(dataset: NormalizedDataset) {
 }
 
 function spriteUrls(id: number) {
-  const root = 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon'
+  const pokeminersRoot = 'https://raw.githubusercontent.com/PokeMiners/pogo_assets/master/Images/Pokemon'
+  const pokeapiRoot = 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon'
+  const assetId = String(id).padStart(3, '0')
   return {
-    default: `${root}/${id}.png`,
-    shiny: `${root}/shiny/${id}.png`,
-    officialArtwork: `${root}/other/official-artwork/${id}.png`,
+    source: 'PokeMiners/pogo_assets',
+    default: `${pokeminersRoot}/pokemon_icon_${assetId}_00.png`,
+    shiny: `${pokeminersRoot}/pokemon_icon_${assetId}_00_shiny.png`,
+    fallbackDefault: `${pokeapiRoot}/${id}.png`,
+    fallbackShiny: `${pokeapiRoot}/shiny/${id}.png`,
+    officialArtwork: `${pokeapiRoot}/other/official-artwork/${id}.png`,
   }
 }
 
