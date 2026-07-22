@@ -4,6 +4,7 @@ import { fileURLToPath } from 'node:url'
 import { normalizeMasterfile, type NormalizedDataset } from '../importer/normalize.js'
 import type { Masterfile } from '../importer/types.js'
 import { defensiveMatchups, typeEffectiveness } from './type-effectiveness.js'
+import { combatDataset, combatRankings, formCombat } from './combat.js'
 
 const API_VERSION = 'v1'
 
@@ -35,6 +36,7 @@ function pokemonDocuments(dataset: NormalizedDataset) {
       ...form,
       types: form.typeIds.map((id) => typesById.get(id)).filter(Boolean),
       typeMatchups: defensiveMatchups(form.typeIds, dataset.types),
+      combat: formCombat(form),
       moves: form.moves.map((relation) => ({ ...relation, move: movesById.get(relation.moveId) })),
     })),
   }))
@@ -73,6 +75,8 @@ code,a{color:#3157d5}li{margin:.55rem 0}.muted{color:#63708a}
 <li><a href="v1/forms.json"><code>/v1/forms.json</code></a></li>
 <li><a href="v1/evolutions.json"><code>/v1/evolutions.json</code></a></li>
 <li><a href="v1/families.json"><code>/v1/families.json</code></a></li>
+<li><a href="v1/combat.json"><code>/v1/combat.json</code></a></li>
+<li><a href="v1/rankings.json"><code>/v1/rankings.json</code></a></li>
 <li><a href="v1/meta.json"><code>/v1/meta.json</code></a></li>
 </ul><p>Cada Pokémon también está disponible en <code>/v1/pokemon/{id}.json</code>. Los índices precomputados están en <code>/v1/indexes/</code>.</p></section></body></html>`
 }
@@ -106,6 +110,8 @@ export async function buildStaticApi(masterfile: Masterfile, output = resolve('p
     writeJson(resolve(apiRoot, 'forms.json'), dataset.forms),
     writeJson(resolve(apiRoot, 'evolutions.json'), evolutions),
     writeJson(resolve(apiRoot, 'families.json'), families(dataset)),
+    writeJson(resolve(apiRoot, 'combat.json'), combatDataset(dataset)),
+    writeJson(resolve(apiRoot, 'rankings.json'), combatRankings(dataset)),
     writeJson(resolve(apiRoot, 'meta.json'), metadata),
     writeFile(resolve(output, 'index.html'), docsHtml(), 'utf8'),
     writeFile(resolve(output, '.nojekyll'), '', 'utf8'),
