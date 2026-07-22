@@ -3,6 +3,7 @@ import { basename, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { normalizeMasterfile, type NormalizedDataset } from '../importer/normalize.js'
 import type { Masterfile } from '../importer/types.js'
+import { defensiveMatchups, typeEffectiveness } from './type-effectiveness.js'
 
 const API_VERSION = 'v1'
 
@@ -33,6 +34,7 @@ function pokemonDocuments(dataset: NormalizedDataset) {
     forms: (formsByPokemon.get(pokemon.id) ?? []).map((form) => ({
       ...form,
       types: form.typeIds.map((id) => typesById.get(id)).filter(Boolean),
+      typeMatchups: defensiveMatchups(form.typeIds, dataset.types),
       moves: form.moves.map((relation) => ({ ...relation, move: movesById.get(relation.moveId) })),
     })),
   }))
@@ -49,6 +51,7 @@ code,a{color:#3157d5}li{margin:.55rem 0}.muted{color:#63708a}
 <section class="card"><h2>Endpoints v1</h2><ul>
 <li><a href="v1/pokedex.json"><code>/v1/pokedex.json</code></a></li>
 <li><a href="v1/types.json"><code>/v1/types.json</code></a></li>
+<li><a href="v1/type-effectiveness.json"><code>/v1/type-effectiveness.json</code></a></li>
 <li><a href="v1/moves.json"><code>/v1/moves.json</code></a></li>
 <li><a href="v1/forms.json"><code>/v1/forms.json</code></a></li>
 <li><a href="v1/evolutions.json"><code>/v1/evolutions.json</code></a></li>
@@ -80,6 +83,7 @@ export async function buildStaticApi(masterfile: Masterfile, output = resolve('p
   await Promise.all([
     writeJson(resolve(apiRoot, 'pokedex.json'), pokemon),
     writeJson(resolve(apiRoot, 'types.json'), dataset.types),
+    writeJson(resolve(apiRoot, 'type-effectiveness.json'), typeEffectiveness(dataset.types)),
     writeJson(resolve(apiRoot, 'moves.json'), dataset.moves),
     writeJson(resolve(apiRoot, 'forms.json'), dataset.forms),
     writeJson(resolve(apiRoot, 'evolutions.json'), evolutions),
