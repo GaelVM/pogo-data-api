@@ -42,6 +42,7 @@ https://gaelvm.github.io/pogo-data-api
 | `/v1/explorer.json` | Índice compacto para interfaces y exploradores visuales |
 | `/v1/sprites.json` | Sprites normales y shiny de PokeMiners, con respaldo de PokéAPI |
 | `/v1/pvp-rankings.json` | Rankings analíticos para Liga Super, Ultra y Master |
+| `/v1/pvp-movesets.json` | Recomendaciones PvP de movimiento rápido y movimientos cargados |
 
 Las traducciones se publican aparte para que cada cliente descargue únicamente el idioma que necesita. Sus claves cubren Pokémon, formas, movimientos, objetos, tipos, clima, misiones y textos diversos del juego.
 

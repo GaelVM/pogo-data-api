@@ -6,6 +6,7 @@ import type { Masterfile } from '../importer/types.js'
 import { defensiveMatchups, typeEffectiveness } from './type-effectiveness.js'
 import { combatDataset, combatRankings, formCombat, pvpRankings } from './combat.js'
 import { docsHtml } from './docs.js'
+import { pvpMovesets } from './pvp-movesets.js'
 
 const API_VERSION = 'v1'
 
@@ -157,6 +158,7 @@ export async function buildStaticApi(masterfile: Masterfile, output = resolve('p
     counts: { pokemon: pokemon.length, forms: dataset.forms.length, types: dataset.types.length, moves: dataset.moves.length },
   }
   const localized = translations(masterfile.translations)
+  const pvp = pvpRankings(dataset)
   const translationManifest = {
     defaultLocale: 'en',
     locales: Object.keys(localized).map((locale) => ({ locale, url: `translations/${locale}.json` })),
@@ -172,7 +174,8 @@ export async function buildStaticApi(masterfile: Masterfile, output = resolve('p
     writeJson(resolve(apiRoot, 'families.json'), families(dataset)),
     writeJson(resolve(apiRoot, 'combat.json'), combatDataset(dataset)),
     writeJson(resolve(apiRoot, 'rankings.json'), combatRankings(dataset)),
-    writeJson(resolve(apiRoot, 'pvp-rankings.json'), pvpRankings(dataset)),
+    writeJson(resolve(apiRoot, 'pvp-rankings.json'), pvp),
+    writeJson(resolve(apiRoot, 'pvp-movesets.json'), pvpMovesets(dataset, pvp)),
     writeJson(resolve(apiRoot, 'temporary-evolutions.json'), temporaryEvolutions(dataset)),
     writeJson(resolve(apiRoot, 'items.json'), catalog(masterfile.items)),
     writeJson(resolve(apiRoot, 'quest-types.json'), catalog(masterfile.questTypes)),
