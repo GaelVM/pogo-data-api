@@ -21,6 +21,16 @@ export interface NormalizedMove {
   power?: number
   energy?: number
   durationMs?: number
+  pvpPower?: number
+  pvpEnergy?: number
+  pvpDurationTurns?: number
+  pvpBuffs?: unknown
+  metrics: {
+    pveDps?: number
+    pveEnergyPerSecond?: number
+    pveDamagePerEnergy?: number
+    pvpDamagePerEnergy?: number
+  }
 }
 
 export interface NormalizedForm {
@@ -42,7 +52,7 @@ export interface NormalizedForm {
   tradable?: boolean
   transferable?: boolean
   typeIds: number[]
-  moves: Array<{ moveId: number; availability: 'NORMAL' }>
+  moves: Array<{ moveId: number; availability: 'NORMAL' | 'ELITE' }>
   evolutions: MasterEvolution[]
 }
 
@@ -161,6 +171,8 @@ function adaptGeneratedMasterfile(input: Masterfile): Masterfile {
           types: optionalDictionary(form.types, normalizeTypes),
           quickMoves: optionalDictionary(field(form, 'quickMoves', 'quick_moves'), normalizeMoveReferences),
           chargedMoves: optionalDictionary(field(form, 'chargedMoves', 'charged_moves'), normalizeMoveReferences),
+          eliteQuickMoves: optionalDictionary(field(form, 'eliteQuickMoves', 'elite_quick_moves'), normalizeMoveReferences),
+          eliteChargedMoves: optionalDictionary(field(form, 'eliteChargedMoves', 'elite_charged_moves'), normalizeMoveReferences),
           evolutions: optionalDictionary(form.evolutions, normalizeEvolutions),
           height: field<number>(form, 'height'),
           weight: field<number>(form, 'weight'),
@@ -181,6 +193,8 @@ function adaptGeneratedMasterfile(input: Masterfile): Masterfile {
         forms,
         quickMoves: normalizeMoveReferences(field(item, 'quickMoves', 'quick_moves')),
         chargedMoves: normalizeMoveReferences(field(item, 'chargedMoves', 'charged_moves')),
+        eliteQuickMoves: optionalDictionary(field(item, 'eliteQuickMoves', 'elite_quick_moves'), normalizeMoveReferences),
+        eliteChargedMoves: optionalDictionary(field(item, 'eliteChargedMoves', 'elite_charged_moves'), normalizeMoveReferences),
         evolutions: optionalDictionary(item.evolutions, normalizeEvolutions),
         height: field(item, 'height'),
         weight: field(item, 'weight'),
@@ -205,7 +219,15 @@ function adaptGeneratedMasterfile(input: Masterfile): Masterfile {
     const type = typeof rawType === 'number' ? rawType
       : typeof rawType === 'string' ? typeIdByName.get(makeSlug(rawType))
       : field<number>(typeObject, 'typeId', 'type_id', 'id')
-    return [[key, { id, name, proto: field(item, 'proto'), type, power: field(item, 'power'), energy: field(item, 'energy'), duration: field(item, 'duration') }]]
+    return [[key, {
+      id, name, proto: field(item, 'proto'), type, power: field(item, 'power'),
+      energy: field(item, 'energy', 'energyDelta', 'energy_delta'),
+      duration: field(item, 'duration', 'durationMs', 'duration_ms'),
+      pvpPower: field(item, 'pvpPower', 'pvp_power'),
+      pvpEnergy: field(item, 'pvpEnergy', 'pvpEnergyDelta', 'pvp_energy', 'pvp_energy_delta'),
+      pvpDurationTurns: field(item, 'pvpDurationTurns', 'pvp_duration_turns'),
+      pvpBuffs: field(item, 'pvpBuffs', 'pvp_buffs'),
+    }]]
   }))
   return { pokemon, forms: {}, types, moves } as unknown as Masterfile
 }
@@ -226,6 +248,11 @@ function mergeMove(
     power: move.power ?? current?.power,
     energy: move.energy ?? current?.energy,
     durationMs: move.duration ?? current?.durationMs,
+    pvpPower: current?.pvpPower,
+    pvpEnergy: current?.pvpEnergy,
+    pvpDurationTurns: current?.pvpDurationTurns,
+    pvpBuffs: current?.pvpBuffs,
+    metrics: current?.metrics ?? {},
   })
 }
 
@@ -238,15 +265,26 @@ function normalizeForm(
   const formMoves = {
     quick: form.quickMoves ?? pokemon.quickMoves,
     charged: form.chargedMoves ?? pokemon.chargedMoves,
+    eliteQuick: form.eliteQuickMoves ?? pokemon.eliteQuickMoves,
+    eliteCharged: form.eliteChargedMoves ?? pokemon.eliteChargedMoves,
   }
 
   values(formMoves.quick).forEach((move) => mergeMove(moves, move, 'FAST'))
   values(formMoves.charged).forEach((move) => mergeMove(moves, move, 'CHARGED'))
+  values(formMoves.eliteQuick).forEach((move) => mergeMove(moves, move, 'FAST'))
+  values(formMoves.eliteCharged).forEach((move) => mergeMove(moves, move, 'CHARGED'))
 
   const relations = [
     ...values(formMoves.quick).map((move) => ({ moveId: move.moveId, availability: 'NORMAL' as const })),
     ...values(formMoves.charged).map((move) => ({ moveId: move.moveId, availability: 'NORMAL' as const })),
+    ...values(formMoves.eliteQuick).map((move) => ({ moveId: move.moveId, availability: 'ELITE' as const })),
+    ...values(formMoves.eliteCharged).map((move) => ({ moveId: move.moveId, availability: 'ELITE' as const })),
   ]
+  const uniqueRelations = new Map<number, (typeof relations)[number]>()
+  relations.forEach((relation) => {
+    const current = uniqueRelations.get(relation.moveId)
+    if (!current || relation.availability === 'NORMAL') uniqueRelations.set(relation.moveId, relation)
+  })
 
   const stats = form.stats ?? pokemon.stats
   const types = form.types ?? pokemon.types
@@ -270,7 +308,7 @@ function normalizeForm(
     tradable: pokemon.misc?.tradable,
     transferable: pokemon.misc?.transferable,
     typeIds: values(types).map((type) => type.typeId).filter((id) => id > 0),
-    moves: [...new Map(relations.map((relation) => [relation.moveId, relation])).values()],
+    moves: [...uniqueRelations.values()],
     evolutions: values(form.evolutions ?? (form.form === pokemon.defaultFormId ? pokemon.evolutions : undefined)),
   }
 }
@@ -294,6 +332,11 @@ export function normalizeMasterfile(masterfile: Masterfile): NormalizedDataset {
       power: move.power,
       energy: move.energy,
       durationMs: move.duration,
+      pvpPower: move.pvpPower,
+      pvpEnergy: move.pvpEnergy,
+      pvpDurationTurns: move.pvpDurationTurns,
+      pvpBuffs: move.pvpBuffs,
+      metrics: moveMetrics(move.power, move.energy, move.duration, move.pvpPower, move.pvpEnergy),
     })
   })
 
@@ -331,5 +374,19 @@ export function normalizeMasterfile(masterfile: Masterfile): NormalizedDataset {
       .filter((type) => type.typeId > 0)
       .map((type) => ({ id: type.typeId, slug: makeSlug(type.typeName), name: type.typeName })),
     moves: [...moves.values()].filter((move) => move.id > 0),
+  }
+}
+
+function ratio(numerator?: number, denominator?: number) {
+  return numerator !== undefined && denominator ? Math.round((numerator / Math.abs(denominator)) * 1000) / 1000 : undefined
+}
+
+function moveMetrics(power?: number, energy?: number, durationMs?: number, pvpPower?: number, pvpEnergy?: number) {
+  const durationSeconds = durationMs ? durationMs / 1000 : undefined
+  return {
+    pveDps: ratio(power, durationSeconds),
+    pveEnergyPerSecond: ratio(energy, durationSeconds),
+    pveDamagePerEnergy: energy !== undefined && energy < 0 ? ratio(power, energy) : undefined,
+    pvpDamagePerEnergy: pvpEnergy !== undefined && pvpEnergy < 0 ? ratio(pvpPower, pvpEnergy) : undefined,
   }
 }

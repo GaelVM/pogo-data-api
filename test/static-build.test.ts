@@ -11,9 +11,11 @@ describe('static API build', () => {
     const meta = await buildStaticApi(fixture, output, 'fixture.json')
     const bulbasaur = JSON.parse(await readFile(resolve(output, 'v1/pokemon/1.json'), 'utf8'))
     const grass = JSON.parse(await readFile(resolve(output, 'v1/indexes/by-type/grass.json'), 'utf8'))
+    const families = JSON.parse(await readFile(resolve(output, 'v1/families.json'), 'utf8'))
 
     expect(meta.counts.pokemon).toBe(2)
     expect(bulbasaur.name).toBe('Bulbasaur')
     expect(grass.map((pokemon: { id: number }) => pokemon.id)).toEqual([1, 2])
+    expect(families[0].members.map((pokemon: { id: number }) => pokemon.id)).toEqual([1, 2])
   })
 })

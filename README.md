@@ -16,14 +16,17 @@ https://gaelvm.github.io/pogo-data-api
 | `/v1/pokemon/1.json` | Documento individual por número de Pokédex |
 | `/v1/types.json` | Tipos |
 | `/v1/type-effectiveness.json` | Matriz completa de efectividad y multiplicadores |
-| `/v1/moves.json` | Movimientos |
+| `/v1/moves.json` | Movimientos, estadísticas PvE/PvP, buffs y métricas derivadas |
 | `/v1/forms.json` | Formas y disfraces |
 | `/v1/evolutions.json` | Relaciones de evolución |
+| `/v1/families.json` | Familias completas y sus rutas evolutivas |
 | `/v1/indexes/by-type/grass.json` | Índice precomputado por tipo |
 | `/v1/indexes/by-generation/1.json` | Índice precomputado por generación |
 | `/v1/meta.json` | Versión, fecha, fuente y cantidades |
 
 Cada forma dentro de la Pokédex incluye `typeMatchups.weaknesses` y `typeMatchups.resistances`. Los multiplicadores contemplan automáticamente combinaciones de dos tipos.
+
+Los movimientos relacionados con cada forma indican `availability: "NORMAL"` o `availability: "ELITE"`. Las métricas derivadas incluyen DPS y energía por segundo en PvE, además de daño por energía cuando corresponde.
 
 La raíz del sitio contiene una documentación navegable.
 

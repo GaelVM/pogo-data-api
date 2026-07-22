@@ -6,7 +6,32 @@ const outputDirectory = resolve('data/raw')
 await mkdir(outputDirectory, { recursive: true })
 
 console.log('Generando snapshot completo...')
-const data = await generate()
+const data = await generate({
+  template: {
+    pokemon: {
+      options: {},
+      template: {
+        eliteQuickMoves: 'moveName',
+        eliteChargedMoves: 'moveName',
+        forms: {
+          eliteQuickMoves: 'moveName',
+          eliteChargedMoves: 'moveName',
+        },
+      },
+    },
+    moves: {
+      options: {},
+      template: {
+        durationMs: true,
+        energyDelta: true,
+        pvpPower: true,
+        pvpEnergyDelta: true,
+        pvpDurationTurns: true,
+        pvpBuffs: true,
+      },
+    },
+  },
+})
 const timestamp = new Date().toISOString().replaceAll(':', '-').replaceAll('.', '-')
 const outputPath = resolve(outputDirectory, `game-master-${timestamp}.json`)
 await writeFile(outputPath, `${JSON.stringify(data, null, 2)}\n`, 'utf8')

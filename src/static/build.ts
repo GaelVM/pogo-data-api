@@ -40,6 +40,23 @@ function pokemonDocuments(dataset: NormalizedDataset) {
   }))
 }
 
+function families(dataset: NormalizedDataset) {
+  const grouped = new Map<number, NormalizedDataset['pokemon']>()
+  dataset.pokemon.forEach((pokemon) => {
+    const familyId = pokemon.familyId ?? pokemon.id
+    const members = grouped.get(familyId) ?? []
+    members.push(pokemon)
+    grouped.set(familyId, members)
+  })
+  return [...grouped.entries()].map(([familyId, members]) => ({
+    familyId,
+    members: members.sort((a, b) => a.id - b.id),
+    evolutions: dataset.forms
+      .filter((form) => members.some((pokemon) => pokemon.id === form.pokemonId))
+      .flatMap((form) => form.evolutions.map((evolution) => ({ fromPokemonId: form.pokemonId, fromFormId: form.formId, ...evolution }))),
+  })).sort((a, b) => a.familyId - b.familyId)
+}
+
 function docsHtml() {
   return `<!doctype html>
 <html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
@@ -55,6 +72,7 @@ code,a{color:#3157d5}li{margin:.55rem 0}.muted{color:#63708a}
 <li><a href="v1/moves.json"><code>/v1/moves.json</code></a></li>
 <li><a href="v1/forms.json"><code>/v1/forms.json</code></a></li>
 <li><a href="v1/evolutions.json"><code>/v1/evolutions.json</code></a></li>
+<li><a href="v1/families.json"><code>/v1/families.json</code></a></li>
 <li><a href="v1/meta.json"><code>/v1/meta.json</code></a></li>
 </ul><p>Cada Pokémon también está disponible en <code>/v1/pokemon/{id}.json</code>. Los índices precomputados están en <code>/v1/indexes/</code>.</p></section></body></html>`
 }
@@ -87,6 +105,7 @@ export async function buildStaticApi(masterfile: Masterfile, output = resolve('p
     writeJson(resolve(apiRoot, 'moves.json'), dataset.moves),
     writeJson(resolve(apiRoot, 'forms.json'), dataset.forms),
     writeJson(resolve(apiRoot, 'evolutions.json'), evolutions),
+    writeJson(resolve(apiRoot, 'families.json'), families(dataset)),
     writeJson(resolve(apiRoot, 'meta.json'), metadata),
     writeFile(resolve(output, 'index.html'), docsHtml(), 'utf8'),
     writeFile(resolve(output, '.nojekyll'), '', 'utf8'),

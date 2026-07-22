@@ -50,17 +50,46 @@ describe('normalizeMasterfile', () => {
           defense: 96,
           stamina: 111,
           types: { '13': 'Electric' },
-          forms: { '137': { form_id: 137, name: 'Normal', types: { '13': 'Electric' } } },
+          forms: {
+            '137': {
+              form_id: 137,
+              name: 'Normal',
+              types: { '13': 'Electric' },
+              elite_quick_moves: { '205': 'Thunder Shock' },
+            },
+          },
         },
       },
       forms: {},
       types: { '13': 'Electric' },
-      moves: { '205': { id: 205, name: 'Thunder Shock', type: 'Electric', power: 5 } },
+      moves: {
+        '205': {
+          id: 205,
+          name: 'Thunder Shock',
+          proto: 'THUNDER_SHOCK_FAST',
+          type: 'Electric',
+          power: 5,
+          duration_ms: 600,
+          energy_delta: 8,
+          pvp_power: 4,
+          pvp_energy_delta: 9,
+          pvp_duration_turns: 1,
+        },
+      },
     } as unknown as Masterfile)
 
     expect(result.pokemon[0]).toMatchObject({ id: 25, name: 'Pikachu', generation: 1 })
     expect(result.forms[0]).toMatchObject({ formId: 137, attack: 112, typeIds: [13] })
     expect(result.types[0]).toEqual({ id: 13, slug: 'electric', name: 'Electric' })
-    expect(result.moves[0]).toMatchObject({ id: 205, typeId: 13 })
+    expect(result.forms[0]?.moves).toContainEqual({ moveId: 205, availability: 'ELITE' })
+    expect(result.moves[0]).toMatchObject({
+      id: 205,
+      typeId: 13,
+      durationMs: 600,
+      energy: 8,
+      pvpPower: 4,
+      pvpEnergy: 9,
+      metrics: { pveDps: 8.333, pveEnergyPerSecond: 13.333 },
+    })
   })
 })

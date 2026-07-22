@@ -31,6 +31,8 @@ export interface MasterForm {
   types?: Dictionary<MasterType>
   quickMoves?: Dictionary<MasterMoveReference>
   chargedMoves?: Dictionary<MasterMoveReference>
+  eliteQuickMoves?: Dictionary<MasterMoveReference>
+  eliteChargedMoves?: Dictionary<MasterMoveReference>
   evolutions?: Dictionary<MasterEvolution>
   height?: number
   weight?: number
@@ -51,6 +53,8 @@ export interface MasterPokemon {
   forms?: Dictionary<MasterForm>
   quickMoves?: Dictionary<MasterMoveReference>
   chargedMoves?: Dictionary<MasterMoveReference>
+  eliteQuickMoves?: Dictionary<MasterMoveReference>
+  eliteChargedMoves?: Dictionary<MasterMoveReference>
   evolutions?: Dictionary<MasterEvolution>
   height?: number
   weight?: number
@@ -70,6 +74,10 @@ export interface MasterMove {
   power?: number
   energy?: number
   duration?: number
+  pvpPower?: number
+  pvpEnergy?: number
+  pvpDurationTurns?: number
+  pvpBuffs?: unknown
   type?: number
 }
 
