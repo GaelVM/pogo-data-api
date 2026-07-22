@@ -19,6 +19,7 @@ describe('static API build', () => {
     const costumes = JSON.parse(await readFile(resolve(output, 'v1/costumes.json'), 'utf8'))
     const docs = await readFile(resolve(output, 'index.html'), 'utf8')
     const explorer = JSON.parse(await readFile(resolve(output, 'v1/explorer.json'), 'utf8'))
+    const pvp = JSON.parse(await readFile(resolve(output, 'v1/pvp-rankings.json'), 'utf8'))
 
     expect(meta.counts.pokemon).toBe(2)
     expect(bulbasaur.name).toBe('Bulbasaur')
@@ -34,5 +35,6 @@ describe('static API build', () => {
     expect(docs).toContain('id="search"')
     expect(docs).toContain('id="pokemonSearch"')
     expect(explorer[0]).toMatchObject({ id: 1, name: 'Bulbasaur', formsCount: 1 })
+    expect(pvp.leagues.great.name).toBe('Liga Super')
   })
 })

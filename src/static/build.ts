@@ -4,7 +4,7 @@ import { fileURLToPath } from 'node:url'
 import { normalizeMasterfile, type NormalizedDataset } from '../importer/normalize.js'
 import type { Masterfile } from '../importer/types.js'
 import { defensiveMatchups, typeEffectiveness } from './type-effectiveness.js'
-import { combatDataset, combatRankings, formCombat } from './combat.js'
+import { combatDataset, combatRankings, formCombat, pvpRankings } from './combat.js'
 import { docsHtml } from './docs.js'
 
 const API_VERSION = 'v1'
@@ -172,6 +172,7 @@ export async function buildStaticApi(masterfile: Masterfile, output = resolve('p
     writeJson(resolve(apiRoot, 'families.json'), families(dataset)),
     writeJson(resolve(apiRoot, 'combat.json'), combatDataset(dataset)),
     writeJson(resolve(apiRoot, 'rankings.json'), combatRankings(dataset)),
+    writeJson(resolve(apiRoot, 'pvp-rankings.json'), pvpRankings(dataset)),
     writeJson(resolve(apiRoot, 'temporary-evolutions.json'), temporaryEvolutions(dataset)),
     writeJson(resolve(apiRoot, 'items.json'), catalog(masterfile.items)),
     writeJson(resolve(apiRoot, 'quest-types.json'), catalog(masterfile.questTypes)),
