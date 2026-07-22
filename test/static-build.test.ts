@@ -15,6 +15,7 @@ describe('static API build', () => {
     const combat = JSON.parse(await readFile(resolve(output, 'v1/combat.json'), 'utf8'))
     const released = JSON.parse(await readFile(resolve(output, 'v1/indexes/by-status/released.json'), 'utf8'))
     const items = JSON.parse(await readFile(resolve(output, 'v1/items.json'), 'utf8'))
+    const translationManifest = JSON.parse(await readFile(resolve(output, 'v1/translations.json'), 'utf8'))
 
     expect(meta.counts.pokemon).toBe(2)
     expect(bulbasaur.name).toBe('Bulbasaur')
@@ -23,5 +24,6 @@ describe('static API build', () => {
     expect(combat[0]).toMatchObject({ pokemonId: 1, maxCp: { level40: 1115, level50: 1260 } })
     expect(released).toHaveLength(2)
     expect(items).toEqual([])
+    expect(translationManifest).toEqual({ defaultLocale: 'en', locales: [] })
   })
 })

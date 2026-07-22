@@ -111,4 +111,5 @@ export interface Masterfile {
   raids?: Dictionary<unknown>
   teams?: Dictionary<unknown>
   routeTypes?: Dictionary<unknown>
+  translations?: Dictionary<unknown>
 }

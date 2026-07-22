@@ -103,6 +103,10 @@ const template = {
   raids: { enabled: true },
   teams: { enabled: true },
   routeTypes: { enabled: true },
+  translations: {
+    enabled: true,
+    locales: { en: true, es: true, 'es-mx': true },
+  },
 } as unknown as NonNullable<Parameters<typeof generate>[0]>['template']
 
 const data = await generate({ template }) as Record<string, Record<string, unknown>>

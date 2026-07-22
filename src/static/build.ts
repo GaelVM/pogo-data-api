@@ -30,6 +30,10 @@ function catalog(source: unknown) {
   })
 }
 
+function translations(source: unknown) {
+  return source && typeof source === 'object' ? source as Record<string, unknown> : {}
+}
+
 function pokemonDocuments(dataset: NormalizedDataset) {
   const formsByPokemon = new Map<number, NormalizedDataset['forms']>()
   for (const form of dataset.forms) {
@@ -103,6 +107,7 @@ code,a{color:#3157d5}li{margin:.55rem 0}.muted{color:#63708a}
 <li><a href="v1/weather.json"><code>/v1/weather.json</code></a></li>
 <li><a href="v1/invasions.json"><code>/v1/invasions.json</code></a></li>
 <li><a href="v1/raids.json"><code>/v1/raids.json</code></a></li>
+<li><a href="v1/translations.json"><code>/v1/translations.json</code></a></li>
 <li><a href="v1/meta.json"><code>/v1/meta.json</code></a></li>
 </ul><p>Cada Pokémon también está disponible en <code>/v1/pokemon/{id}.json</code>. Los índices precomputados están en <code>/v1/indexes/</code>.</p></section></body></html>`
 }
@@ -116,8 +121,10 @@ export async function buildStaticApi(masterfile: Masterfile, output = resolve('p
   const generationIndexRoot = resolve(apiRoot, 'indexes/by-generation')
   const rarityIndexRoot = resolve(apiRoot, 'indexes/by-rarity')
   const statusIndexRoot = resolve(apiRoot, 'indexes/by-status')
+  const translationsRoot = resolve(apiRoot, 'translations')
   await Promise.all([pokemonRoot, typeIndexRoot, generationIndexRoot, rarityIndexRoot, statusIndexRoot]
     .map((path) => mkdir(path, { recursive: true })))
+  await mkdir(translationsRoot, { recursive: true })
 
   const evolutions = dataset.forms.flatMap((form) =>
     form.evolutions.map((evolution) => ({ fromPokemonId: form.pokemonId, fromFormId: form.formId, ...evolution })),
@@ -129,6 +136,11 @@ export async function buildStaticApi(masterfile: Masterfile, output = resolve('p
     generatedAt,
     sourceFile: basename(sourceFile),
     counts: { pokemon: pokemon.length, forms: dataset.forms.length, types: dataset.types.length, moves: dataset.moves.length },
+  }
+  const localized = translations(masterfile.translations)
+  const translationManifest = {
+    defaultLocale: 'en',
+    locales: Object.keys(localized).map((locale) => ({ locale, url: `translations/${locale}.json` })),
   }
 
   await Promise.all([
@@ -151,6 +163,7 @@ export async function buildStaticApi(masterfile: Masterfile, output = resolve('p
     writeJson(resolve(apiRoot, 'raids.json'), catalog(masterfile.raids)),
     writeJson(resolve(apiRoot, 'teams.json'), catalog(masterfile.teams)),
     writeJson(resolve(apiRoot, 'route-types.json'), catalog(masterfile.routeTypes)),
+    writeJson(resolve(apiRoot, 'translations.json'), translationManifest),
     writeJson(resolve(apiRoot, 'meta.json'), metadata),
     writeFile(resolve(output, 'index.html'), docsHtml(), 'utf8'),
     writeFile(resolve(output, '.nojekyll'), '', 'utf8'),
@@ -160,6 +173,7 @@ export async function buildStaticApi(masterfile: Masterfile, output = resolve('p
     writeJson(resolve(rarityIndexRoot, 'ultra-beast.json'), pokemon.filter((entry) => entry.ultraBeast)),
     writeJson(resolve(statusIndexRoot, 'released.json'), pokemon.filter((entry) => !entry.unreleased)),
     writeJson(resolve(statusIndexRoot, 'unreleased.json'), pokemon.filter((entry) => entry.unreleased)),
+    ...Object.entries(localized).map(([locale, values]) => writeJson(resolve(translationsRoot, `${locale}.json`), values)),
   ])
 
   for (const type of dataset.types) {

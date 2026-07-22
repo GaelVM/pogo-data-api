@@ -32,6 +32,12 @@ https://gaelvm.github.io/pogo-data-api
 | `/v1/quest-reward-types.json` | Tipos de recompensa |
 | `/v1/teams.json` | Equipos del juego |
 | `/v1/route-types.json` | Tipos de ruta |
+| `/v1/translations.json` | Manifiesto de idiomas disponibles |
+| `/v1/translations/es.json` | Traducciones en español |
+| `/v1/translations/es-mx.json` | Traducciones en español latinoamericano |
+| `/v1/translations/en.json` | Traducciones en inglés |
+
+Las traducciones se publican aparte para que cada cliente descargue únicamente el idioma que necesita. Sus claves cubren Pokémon, formas, movimientos, objetos, tipos, clima, misiones y textos diversos del juego.
 | `/v1/indexes/by-type/grass.json` | Índice precomputado por tipo |
 | `/v1/indexes/by-generation/1.json` | Índice precomputado por generación |
 | `/v1/meta.json` | Versión, fecha, fuente y cantidades |
