@@ -36,8 +36,13 @@ https://gaelvm.github.io/pogo-data-api
 | `/v1/translations/es.json` | Traducciones en español |
 | `/v1/translations/es-mx.json` | Traducciones en español latinoamericano |
 | `/v1/translations/en.json` | Traducciones en inglés |
+| `/v1/costumes.json` | Disfraces y restricciones de evolución |
+| `/v1/location-cards.json` | Tarjetas de ubicación y recursos visuales asociados |
+| `/v1/gigantamax.json` | Pokémon y movimientos Gigamax disponibles en el Game Master |
 
 Las traducciones se publican aparte para que cada cliente descargue únicamente el idioma que necesita. Sus claves cubren Pokémon, formas, movimientos, objetos, tipos, clima, misiones y textos diversos del juego.
+
+Las formas incluyen `purificationCandy` y `purificationDust` cuando esos costes existen. Sus movimientos distinguen disponibilidad `NORMAL`, `ELITE` y `GMAX`.
 | `/v1/indexes/by-type/grass.json` | Índice precomputado por tipo |
 | `/v1/indexes/by-generation/1.json` | Índice precomputado por generación |
 | `/v1/meta.json` | Versión, fecha, fuente y cantidades |

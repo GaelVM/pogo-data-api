@@ -56,6 +56,9 @@ describe('normalizeMasterfile', () => {
               name: 'Normal',
               types: { '13': 'Electric' },
               elite_quick_moves: { '205': 'Thunder Shock' },
+              gmax_move: { move_id: 1000, move_name: 'G-Max Volt Crash' },
+              purification_candy: 3,
+              purification_dust: 3000,
             },
           },
           temp_evolutions: {
@@ -78,6 +81,7 @@ describe('normalizeMasterfile', () => {
           pvp_energy_delta: 9,
           pvp_duration_turns: 1,
         },
+        '1000': { id: 1000, name: 'G-Max Volt Crash', proto: 'G_MAX_VOLT_CRASH', type: 'Electric', power: 350 },
       },
     } as unknown as Masterfile)
 
@@ -85,6 +89,8 @@ describe('normalizeMasterfile', () => {
     expect(result.forms[0]).toMatchObject({ formId: 137, attack: 112, typeIds: [13] })
     expect(result.types[0]).toEqual({ id: 13, slug: 'electric', name: 'Electric' })
     expect(result.forms[0]?.moves).toContainEqual({ moveId: 205, availability: 'ELITE' })
+    expect(result.forms[0]?.moves).toContainEqual({ moveId: 1000, availability: 'GMAX' })
+    expect(result.forms[0]).toMatchObject({ purificationCandy: 3, purificationDust: 3000 })
     expect(result.forms[0]?.temporaryEvolutions[0]).toMatchObject({ id: 1, attack: 200, typeIds: [13], firstEnergyCost: 200 })
     expect(result.moves[0]).toMatchObject({
       id: 205,

@@ -55,7 +55,11 @@ export async function importSnapshot(
       }
       if (moves.length) {
         await tx.pokemonMove.createMany({
-          data: moves.map((move) => ({ pokemonFormId: saved.id, ...move })),
+          data: moves.map((move) => ({
+            pokemonFormId: saved.id,
+            moveId: move.moveId,
+            availability: move.availability === 'GMAX' ? 'EVENT' as const : move.availability,
+          })),
           skipDuplicates: true,
         })
       }

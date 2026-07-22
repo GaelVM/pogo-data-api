@@ -50,10 +50,12 @@ export interface NormalizedForm {
   buddyDistance?: number
   thirdMoveStardust?: number
   thirdMoveCandy?: number
+  purificationCandy?: number
+  purificationDust?: number
   tradable?: boolean
   transferable?: boolean
   typeIds: number[]
-  moves: Array<{ moveId: number; availability: 'NORMAL' | 'ELITE' }>
+  moves: Array<{ moveId: number; availability: 'NORMAL' | 'ELITE' | 'GMAX' }>
   evolutions: MasterEvolution[]
   temporaryEvolutions: MasterTemporaryEvolution[]
 }
@@ -120,6 +122,12 @@ function normalizeMoveReferences(source: unknown): Dictionary<MasterMoveReferenc
       }]]
     }),
   )
+}
+
+function normalizeMoveField(source: unknown) {
+  const item = record(source)
+  if (field(item, 'moveId', 'move_id', 'id') !== undefined) return normalizeMoveReferences({ single: source })
+  return normalizeMoveReferences(source)
 }
 
 function normalizeEvolutions(source: unknown): Dictionary<MasterEvolution> {
@@ -194,10 +202,13 @@ function adaptGeneratedMasterfile(input: Masterfile): Masterfile {
           chargedMoves: optionalDictionary(field(form, 'chargedMoves', 'charged_moves'), normalizeMoveReferences),
           eliteQuickMoves: optionalDictionary(field(form, 'eliteQuickMoves', 'elite_quick_moves'), normalizeMoveReferences),
           eliteChargedMoves: optionalDictionary(field(form, 'eliteChargedMoves', 'elite_charged_moves'), normalizeMoveReferences),
+          gmaxMoves: optionalDictionary(field(form, 'gmaxMove', 'gmax_move'), normalizeMoveField),
           evolutions: optionalDictionary(form.evolutions, normalizeEvolutions),
           temporaryEvolutions: optionalDictionary(field(form, 'tempEvolutions', 'temp_evolutions'), normalizeTemporaryEvolutions),
           height: field<number>(form, 'height'),
           weight: field<number>(form, 'weight'),
+          purificationCandy: field(form, 'purificationCandy', 'purification_candy'),
+          purificationDust: field(form, 'purificationDust', 'purification_dust'),
         }]
       }))
       return [[key, {
@@ -218,10 +229,13 @@ function adaptGeneratedMasterfile(input: Masterfile): Masterfile {
         chargedMoves: normalizeMoveReferences(field(item, 'chargedMoves', 'charged_moves')),
         eliteQuickMoves: optionalDictionary(field(item, 'eliteQuickMoves', 'elite_quick_moves'), normalizeMoveReferences),
         eliteChargedMoves: optionalDictionary(field(item, 'eliteChargedMoves', 'elite_charged_moves'), normalizeMoveReferences),
+        gmaxMoves: optionalDictionary(field(item, 'gmaxMove', 'gmax_move'), normalizeMoveField),
         evolutions: optionalDictionary(item.evolutions, normalizeEvolutions),
         temporaryEvolutions: optionalDictionary(field(item, 'tempEvolutions', 'temp_evolutions'), normalizeTemporaryEvolutions),
         height: field(item, 'height'),
         weight: field(item, 'weight'),
+        purificationCandy: field(item, 'purificationCandy', 'purification_candy'),
+        purificationDust: field(item, 'purificationDust', 'purification_dust'),
         misc: {
           buddyDistance: field(item, 'buddyDistance', 'buddy_distance'),
           thirdMoveStardust: field(item, 'thirdMoveStardust', 'third_move_stardust'),
@@ -291,23 +305,28 @@ function normalizeForm(
     charged: form.chargedMoves ?? pokemon.chargedMoves,
     eliteQuick: form.eliteQuickMoves ?? pokemon.eliteQuickMoves,
     eliteCharged: form.eliteChargedMoves ?? pokemon.eliteChargedMoves,
+    gmax: form.gmaxMoves ?? pokemon.gmaxMoves,
   }
 
   values(formMoves.quick).forEach((move) => mergeMove(moves, move, 'FAST'))
   values(formMoves.charged).forEach((move) => mergeMove(moves, move, 'CHARGED'))
   values(formMoves.eliteQuick).forEach((move) => mergeMove(moves, move, 'FAST'))
   values(formMoves.eliteCharged).forEach((move) => mergeMove(moves, move, 'CHARGED'))
+  values(formMoves.gmax).forEach((move) => mergeMove(moves, move, 'CHARGED'))
 
   const relations = [
     ...values(formMoves.quick).map((move) => ({ moveId: move.moveId, availability: 'NORMAL' as const })),
     ...values(formMoves.charged).map((move) => ({ moveId: move.moveId, availability: 'NORMAL' as const })),
     ...values(formMoves.eliteQuick).map((move) => ({ moveId: move.moveId, availability: 'ELITE' as const })),
     ...values(formMoves.eliteCharged).map((move) => ({ moveId: move.moveId, availability: 'ELITE' as const })),
+    ...values(formMoves.gmax).map((move) => ({ moveId: move.moveId, availability: 'GMAX' as const })),
   ]
   const uniqueRelations = new Map<number, (typeof relations)[number]>()
   relations.forEach((relation) => {
     const current = uniqueRelations.get(relation.moveId)
-    if (!current || relation.availability === 'NORMAL') uniqueRelations.set(relation.moveId, relation)
+    if (!current || relation.availability === 'NORMAL' || (current.availability === 'GMAX' && relation.availability === 'ELITE')) {
+      uniqueRelations.set(relation.moveId, relation)
+    }
   })
 
   const stats = form.stats ?? pokemon.stats
@@ -329,6 +348,8 @@ function normalizeForm(
     buddyDistance: pokemon.misc?.buddyDistance,
     thirdMoveStardust: pokemon.misc?.thirdMoveStardust,
     thirdMoveCandy: pokemon.misc?.thirdMoveCandy,
+    purificationCandy: form.purificationCandy ?? pokemon.purificationCandy,
+    purificationDust: form.purificationDust ?? pokemon.purificationDust,
     tradable: pokemon.misc?.tradable,
     transferable: pokemon.misc?.transferable,
     typeIds: values(types).map((type) => type.typeId).filter((id) => id > 0),

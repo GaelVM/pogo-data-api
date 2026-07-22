@@ -46,10 +46,13 @@ export interface MasterForm {
   chargedMoves?: Dictionary<MasterMoveReference>
   eliteQuickMoves?: Dictionary<MasterMoveReference>
   eliteChargedMoves?: Dictionary<MasterMoveReference>
+  gmaxMoves?: Dictionary<MasterMoveReference>
   evolutions?: Dictionary<MasterEvolution>
   temporaryEvolutions?: Dictionary<MasterTemporaryEvolution>
   height?: number
   weight?: number
+  purificationCandy?: number
+  purificationDust?: number
 }
 
 export interface MasterPokemon {
@@ -70,10 +73,13 @@ export interface MasterPokemon {
   chargedMoves?: Dictionary<MasterMoveReference>
   eliteQuickMoves?: Dictionary<MasterMoveReference>
   eliteChargedMoves?: Dictionary<MasterMoveReference>
+  gmaxMoves?: Dictionary<MasterMoveReference>
   evolutions?: Dictionary<MasterEvolution>
   temporaryEvolutions?: Dictionary<MasterTemporaryEvolution>
   height?: number
   weight?: number
+  purificationCandy?: number
+  purificationDust?: number
   misc?: {
     buddyDistance?: number
     thirdMoveStardust?: number
@@ -112,4 +118,6 @@ export interface Masterfile {
   teams?: Dictionary<unknown>
   routeTypes?: Dictionary<unknown>
   translations?: Dictionary<unknown>
+  costumes?: Dictionary<unknown>
+  locationCards?: Dictionary<unknown>
 }

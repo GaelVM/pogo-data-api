@@ -84,6 +84,22 @@ function temporaryEvolutions(dataset: NormalizedDataset) {
   })))
 }
 
+function gigantamax(dataset: NormalizedDataset) {
+  const pokemonById = new Map(dataset.pokemon.map((pokemon) => [pokemon.id, pokemon]))
+  const movesById = new Map(dataset.moves.map((move) => [move.id, move]))
+  return dataset.forms.flatMap((form) => {
+    const moves = form.moves.filter((move) => move.availability === 'GMAX')
+      .map((relation) => movesById.get(relation.moveId)).filter(Boolean)
+    return moves.length ? [{
+      pokemonId: form.pokemonId,
+      pokemonName: pokemonById.get(form.pokemonId)?.name,
+      formId: form.formId,
+      formName: form.name,
+      moves,
+    }] : []
+  })
+}
+
 function docsHtml() {
   return `<!doctype html>
 <html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
@@ -108,6 +124,9 @@ code,a{color:#3157d5}li{margin:.55rem 0}.muted{color:#63708a}
 <li><a href="v1/invasions.json"><code>/v1/invasions.json</code></a></li>
 <li><a href="v1/raids.json"><code>/v1/raids.json</code></a></li>
 <li><a href="v1/translations.json"><code>/v1/translations.json</code></a></li>
+<li><a href="v1/costumes.json"><code>/v1/costumes.json</code></a></li>
+<li><a href="v1/location-cards.json"><code>/v1/location-cards.json</code></a></li>
+<li><a href="v1/gigantamax.json"><code>/v1/gigantamax.json</code></a></li>
 <li><a href="v1/meta.json"><code>/v1/meta.json</code></a></li>
 </ul><p>Cada Pokémon también está disponible en <code>/v1/pokemon/{id}.json</code>. Los índices precomputados están en <code>/v1/indexes/</code>.</p></section></body></html>`
 }
@@ -164,6 +183,9 @@ export async function buildStaticApi(masterfile: Masterfile, output = resolve('p
     writeJson(resolve(apiRoot, 'teams.json'), catalog(masterfile.teams)),
     writeJson(resolve(apiRoot, 'route-types.json'), catalog(masterfile.routeTypes)),
     writeJson(resolve(apiRoot, 'translations.json'), translationManifest),
+    writeJson(resolve(apiRoot, 'costumes.json'), catalog(masterfile.costumes)),
+    writeJson(resolve(apiRoot, 'location-cards.json'), catalog(masterfile.locationCards)),
+    writeJson(resolve(apiRoot, 'gigantamax.json'), gigantamax(dataset)),
     writeJson(resolve(apiRoot, 'meta.json'), metadata),
     writeFile(resolve(output, 'index.html'), docsHtml(), 'utf8'),
     writeFile(resolve(output, '.nojekyll'), '', 'utf8'),

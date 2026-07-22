@@ -33,6 +33,9 @@ const template = {
       chargedMoves: 'moveName',
       eliteQuickMoves: 'moveName',
       eliteChargedMoves: 'moveName',
+      gmaxMove: 'moveName',
+      purificationCandy: true,
+      purificationDust: true,
       evolutions: { evoId: true, formId: true, candyCost: true, itemRequirement: true },
       tempEvolutions: {
         tempEvoId: true,
@@ -60,6 +63,9 @@ const template = {
         chargedMoves: 'moveName',
         eliteQuickMoves: 'moveName',
         eliteChargedMoves: 'moveName',
+        gmaxMove: 'moveName',
+        purificationCandy: true,
+        purificationDust: true,
         evolutions: { evoId: true, formId: true, candyCost: true, itemRequirement: true },
         tempEvolutions: {
           tempEvoId: true,
@@ -107,6 +113,8 @@ const template = {
     enabled: true,
     locales: { en: true, es: true, 'es-mx': true },
   },
+  costumes: { enabled: true },
+  locationCards: { enabled: true },
 } as unknown as NonNullable<Parameters<typeof generate>[0]>['template']
 
 const data = await generate({ template }) as Record<string, Record<string, unknown>>
