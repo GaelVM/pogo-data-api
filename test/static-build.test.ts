@@ -1,0 +1,19 @@
+import { readFile } from 'node:fs/promises'
+import { resolve } from 'node:path'
+import { describe, expect, it } from 'vitest'
+import { buildStaticApi } from '../src/static/build.js'
+import type { Masterfile } from '../src/importer/types.js'
+
+describe('static API build', () => {
+  it('genera endpoints, documentos individuales e índices', async () => {
+    const fixture = JSON.parse(await readFile(resolve('data/sample/game-master.sample.json'), 'utf8')) as Masterfile
+    const output = resolve('/tmp/pogo-data-api-static-test')
+    const meta = await buildStaticApi(fixture, output, 'fixture.json')
+    const bulbasaur = JSON.parse(await readFile(resolve(output, 'v1/pokemon/1.json'), 'utf8'))
+    const grass = JSON.parse(await readFile(resolve(output, 'v1/indexes/by-type/grass.json'), 'utf8'))
+
+    expect(meta.counts.pokemon).toBe(2)
+    expect(bulbasaur.name).toBe('Bulbasaur')
+    expect(grass.map((pokemon: { id: number }) => pokemon.id)).toEqual([1, 2])
+  })
+})

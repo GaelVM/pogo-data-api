@@ -1,0 +1,77 @@
+{
+  "pokemon": {
+    "1": {
+      "name": "Bulbasaur",
+      "pokedexId": 1,
+      "defaultFormId": 163,
+      "genId": 1,
+      "generation": "Kanto",
+      "family": 1,
+      "legendary": false,
+      "mythic": false,
+      "ultraBeast": false,
+      "stats": { "attack": 118, "defense": 111, "stamina": 128 },
+      "height": 0.7,
+      "weight": 6.9,
+      "types": {
+        "4": { "typeId": 4, "typeName": "Poison" },
+        "12": { "typeId": 12, "typeName": "Grass" }
+      },
+      "quickMoves": {
+        "214": { "moveId": 214, "moveName": "Vine Whip", "proto": "VINE_WHIP_FAST", "type": 12, "power": 6 }
+      },
+      "chargedMoves": {
+        "59": { "moveId": 59, "moveName": "Seed Bomb", "proto": "SEED_BOMB", "type": 12, "power": 55 }
+      },
+      "forms": {
+        "163": {
+          "name": "Normal",
+          "proto": "BULBASAUR_NORMAL",
+          "form": 163,
+          "evolutions": { "2": { "pokemon": 2, "form": 166, "candyCost": 25 } }
+        }
+      },
+      "misc": {
+        "buddyDistance": 3,
+        "thirdMoveStardust": 10000,
+        "thirdMoveCandy": 25,
+        "tradable": true,
+        "transferable": true
+      }
+    },
+    "2": {
+      "name": "Ivysaur",
+      "pokedexId": 2,
+      "defaultFormId": 166,
+      "genId": 1,
+      "generation": "Kanto",
+      "family": 1,
+      "stats": { "attack": 151, "defense": 143, "stamina": 155 },
+      "types": {
+        "4": { "typeId": 4, "typeName": "Poison" },
+        "12": { "typeId": 12, "typeName": "Grass" }
+      },
+      "quickMoves": {
+        "214": { "moveId": 214, "moveName": "Vine Whip", "proto": "VINE_WHIP_FAST", "type": 12, "power": 6 }
+      },
+      "chargedMoves": {
+        "59": { "moveId": 59, "moveName": "Seed Bomb", "proto": "SEED_BOMB", "type": 12, "power": 55 }
+      },
+      "forms": {
+        "166": { "name": "Normal", "proto": "IVYSAUR_NORMAL", "form": 166 }
+      }
+    }
+  },
+  "forms": {
+    "163": { "formId": 163, "formName": "Normal", "proto": "BULBASAUR_NORMAL" },
+    "166": { "formId": 166, "formName": "Normal", "proto": "IVYSAUR_NORMAL" }
+  },
+  "types": {
+    "4": { "typeId": 4, "typeName": "Poison" },
+    "12": { "typeId": 12, "typeName": "Grass" }
+  },
+  "moves": {
+    "59": { "id": 59, "name": "Seed Bomb", "proto": "SEED_BOMB", "power": 55 },
+    "214": { "id": 214, "name": "Vine Whip", "proto": "VINE_WHIP_FAST", "power": 6 }
+  }
+}
