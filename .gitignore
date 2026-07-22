@@ -1,8 +1,0 @@
-node_modules/
-dist/
-.env
-coverage/
-data/raw/*.json
-!data/raw/.gitkeep
-*.log
-.DS_Store
