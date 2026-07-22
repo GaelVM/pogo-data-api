@@ -39,6 +39,8 @@ https://gaelvm.github.io/pogo-data-api
 | `/v1/costumes.json` | Disfraces y restricciones de evolución |
 | `/v1/location-cards.json` | Tarjetas de ubicación y recursos visuales asociados |
 | `/v1/gigantamax.json` | Pokémon y movimientos Gigamax disponibles en el Game Master |
+| `/v1/explorer.json` | Índice compacto para interfaces y exploradores visuales |
+| `/v1/sprites.json` | URLs de sprites, variantes shiny y arte oficial de PokéAPI |
 
 Las traducciones se publican aparte para que cada cliente descargue únicamente el idioma que necesita. Sus claves cubren Pokémon, formas, movimientos, objetos, tipos, clima, misiones y textos diversos del juego.
 

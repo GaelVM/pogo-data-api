@@ -101,6 +101,31 @@ function gigantamax(dataset: NormalizedDataset) {
   })
 }
 
+function spriteUrls(id: number) {
+  const root = 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon'
+  return {
+    default: `${root}/${id}.png`,
+    shiny: `${root}/shiny/${id}.png`,
+    officialArtwork: `${root}/other/official-artwork/${id}.png`,
+  }
+}
+
+function explorer(dataset: NormalizedDataset) {
+  const typesById = new Map(dataset.types.map((type) => [type.id, type]))
+  return dataset.pokemon.map((pokemon) => {
+    const forms = dataset.forms.filter((form) => form.pokemonId === pokemon.id)
+    const form = forms.find((entry) => entry.isDefault) ?? forms[0]
+    return {
+      id: pokemon.id, slug: pokemon.slug, name: pokemon.name, generation: pokemon.generation,
+      legendary: pokemon.legendary, mythic: pokemon.mythic, ultraBeast: pokemon.ultraBeast,
+      types: form?.typeIds.map((id) => typesById.get(id)).filter(Boolean) ?? [],
+      combat: form ? formCombat(form) : undefined,
+      formsCount: forms.length,
+      sprites: spriteUrls(pokemon.id),
+    }
+  })
+}
+
 export async function buildStaticApi(masterfile: Masterfile, output = resolve('public'), sourceFile = 'unknown') {
   const dataset = normalizeMasterfile(masterfile)
   const pokemon = pokemonDocuments(dataset)
@@ -156,6 +181,8 @@ export async function buildStaticApi(masterfile: Masterfile, output = resolve('p
     writeJson(resolve(apiRoot, 'costumes.json'), catalog(masterfile.costumes)),
     writeJson(resolve(apiRoot, 'location-cards.json'), catalog(masterfile.locationCards)),
     writeJson(resolve(apiRoot, 'gigantamax.json'), gigantamax(dataset)),
+    writeJson(resolve(apiRoot, 'explorer.json'), explorer(dataset)),
+    writeJson(resolve(apiRoot, 'sprites.json'), pokemon.map((entry) => ({ pokemonId: entry.id, ...spriteUrls(entry.id) }))),
     writeJson(resolve(apiRoot, 'meta.json'), metadata),
     writeFile(resolve(output, 'index.html'), docsHtml(), 'utf8'),
     writeFile(resolve(output, '.nojekyll'), '', 'utf8'),
