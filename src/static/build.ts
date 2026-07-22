@@ -5,6 +5,7 @@ import { normalizeMasterfile, type NormalizedDataset } from '../importer/normali
 import type { Masterfile } from '../importer/types.js'
 import { defensiveMatchups, typeEffectiveness } from './type-effectiveness.js'
 import { combatDataset, combatRankings, formCombat } from './combat.js'
+import { docsHtml } from './docs.js'
 
 const API_VERSION = 'v1'
 
@@ -98,37 +99,6 @@ function gigantamax(dataset: NormalizedDataset) {
       moves,
     }] : []
   })
-}
-
-function docsHtml() {
-  return `<!doctype html>
-<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>PoGo Data API</title><style>
-body{max-width:900px;margin:60px auto;padding:0 22px;font:16px/1.6 system-ui;color:#172033;background:#f7f9fc}
-h1{font-size:clamp(2rem,6vw,4rem);margin-bottom:0}.card{background:white;padding:24px;border-radius:16px;box-shadow:0 8px 30px #18244b12}
-code,a{color:#3157d5}li{margin:.55rem 0}.muted{color:#63708a}
-</style></head><body><h1>PoGo Data API</h1><p class="muted">API JSON estática, abierta y versionada de datos de Pokémon GO.</p>
-<section class="card"><h2>Endpoints v1</h2><ul>
-<li><a href="v1/pokedex.json"><code>/v1/pokedex.json</code></a></li>
-<li><a href="v1/types.json"><code>/v1/types.json</code></a></li>
-<li><a href="v1/type-effectiveness.json"><code>/v1/type-effectiveness.json</code></a></li>
-<li><a href="v1/moves.json"><code>/v1/moves.json</code></a></li>
-<li><a href="v1/forms.json"><code>/v1/forms.json</code></a></li>
-<li><a href="v1/evolutions.json"><code>/v1/evolutions.json</code></a></li>
-<li><a href="v1/families.json"><code>/v1/families.json</code></a></li>
-<li><a href="v1/combat.json"><code>/v1/combat.json</code></a></li>
-<li><a href="v1/rankings.json"><code>/v1/rankings.json</code></a></li>
-<li><a href="v1/temporary-evolutions.json"><code>/v1/temporary-evolutions.json</code></a></li>
-<li><a href="v1/items.json"><code>/v1/items.json</code></a></li>
-<li><a href="v1/weather.json"><code>/v1/weather.json</code></a></li>
-<li><a href="v1/invasions.json"><code>/v1/invasions.json</code></a></li>
-<li><a href="v1/raids.json"><code>/v1/raids.json</code></a></li>
-<li><a href="v1/translations.json"><code>/v1/translations.json</code></a></li>
-<li><a href="v1/costumes.json"><code>/v1/costumes.json</code></a></li>
-<li><a href="v1/location-cards.json"><code>/v1/location-cards.json</code></a></li>
-<li><a href="v1/gigantamax.json"><code>/v1/gigantamax.json</code></a></li>
-<li><a href="v1/meta.json"><code>/v1/meta.json</code></a></li>
-</ul><p>Cada Pokémon también está disponible en <code>/v1/pokemon/{id}.json</code>. Los índices precomputados están en <code>/v1/indexes/</code>.</p></section></body></html>`
 }
 
 export async function buildStaticApi(masterfile: Masterfile, output = resolve('public'), sourceFile = 'unknown') {

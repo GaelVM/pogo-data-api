@@ -17,6 +17,7 @@ describe('static API build', () => {
     const items = JSON.parse(await readFile(resolve(output, 'v1/items.json'), 'utf8'))
     const translationManifest = JSON.parse(await readFile(resolve(output, 'v1/translations.json'), 'utf8'))
     const costumes = JSON.parse(await readFile(resolve(output, 'v1/costumes.json'), 'utf8'))
+    const docs = await readFile(resolve(output, 'index.html'), 'utf8')
 
     expect(meta.counts.pokemon).toBe(2)
     expect(bulbasaur.name).toBe('Bulbasaur')
@@ -27,5 +28,8 @@ describe('static API build', () => {
     expect(items).toEqual([])
     expect(translationManifest).toEqual({ defaultLocale: 'en', locales: [] })
     expect(costumes).toEqual([])
+    expect(docs).toContain('Catálogo de endpoints')
+    expect(docs).toContain('data-copy="v1/pokedex.json"')
+    expect(docs).toContain('id="search"')
   })
 })
