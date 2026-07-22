@@ -21,6 +21,7 @@ describe('static API build', () => {
     const explorer = JSON.parse(await readFile(resolve(output, 'v1/explorer.json'), 'utf8'))
     const pvp = JSON.parse(await readFile(resolve(output, 'v1/pvp-rankings.json'), 'utf8'))
     const pvpMovesets = JSON.parse(await readFile(resolve(output, 'v1/pvp-movesets.json'), 'utf8'))
+    const activeEvents = JSON.parse(await readFile(resolve(output, 'v1/live/events/active.json'), 'utf8'))
 
     expect(meta.counts.pokemon).toBe(2)
     expect(bulbasaur.name).toBe('Bulbasaur')
@@ -38,5 +39,6 @@ describe('static API build', () => {
     expect(explorer[0]).toMatchObject({ id: 1, name: 'Bulbasaur', formsCount: 1 })
     expect(pvp.leagues.great.name).toBe('Liga Super')
     expect(pvpMovesets.methodology).toContain('Heurística transparente')
+    expect(activeEvents).toEqual([])
   })
 })

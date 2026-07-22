@@ -43,6 +43,14 @@ https://gaelvm.github.io/pogo-data-api
 | `/v1/sprites.json` | Sprites normales y shiny de PokeMiners, con respaldo de PokéAPI |
 | `/v1/pvp-rankings.json` | Rankings analíticos para Liga Super, Ultra y Master |
 | `/v1/pvp-movesets.json` | Recomendaciones PvP de movimiento rápido y movimientos cargados |
+| `/v1/live/events/active.json` | Eventos actualmente activos |
+| `/v1/live/events/upcoming.json` | Próximos eventos |
+| `/v1/live/active-raids.json` | Jefes de incursión activos |
+| `/v1/live/calendar.json` | Calendario combinado de eventos e incursiones |
+
+### Datos dinámicos propios
+
+Edita `data/curated/events.json` y `data/curated/raid-bosses.json` directamente desde GitHub. Usa fechas ISO 8601 con zona horaria, por ejemplo `2026-07-22T18:00:00-05:00`. Cada ejecución de GitHub Actions valida las fechas y vuelve a clasificar automáticamente los registros como `active`, `upcoming` o `past`.
 
 Las traducciones se publican aparte para que cada cliente descargue únicamente el idioma que necesita. Sus claves cubren Pokémon, formas, movimientos, objetos, tipos, clima, misiones y textos diversos del juego.
 

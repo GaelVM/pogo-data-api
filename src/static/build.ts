@@ -7,6 +7,7 @@ import { defensiveMatchups, typeEffectiveness } from './type-effectiveness.js'
 import { combatDataset, combatRankings, formCombat, pvpRankings } from './combat.js'
 import { docsHtml } from './docs.js'
 import { pvpMovesets } from './pvp-movesets.js'
+import { EMPTY_LIVE_DATA, liveEndpoints, validateLiveData, type LiveData } from './live.js'
 
 const API_VERSION = 'v1'
 
@@ -132,7 +133,7 @@ function explorer(dataset: NormalizedDataset) {
   })
 }
 
-export async function buildStaticApi(masterfile: Masterfile, output = resolve('public'), sourceFile = 'unknown') {
+export async function buildStaticApi(masterfile: Masterfile, output = resolve('public'), sourceFile = 'unknown', liveData: LiveData = EMPTY_LIVE_DATA) {
   const dataset = normalizeMasterfile(masterfile)
   const pokemon = pokemonDocuments(dataset)
   const apiRoot = resolve(output, API_VERSION)
@@ -142,9 +143,12 @@ export async function buildStaticApi(masterfile: Masterfile, output = resolve('p
   const rarityIndexRoot = resolve(apiRoot, 'indexes/by-rarity')
   const statusIndexRoot = resolve(apiRoot, 'indexes/by-status')
   const translationsRoot = resolve(apiRoot, 'translations')
+  const liveRoot = resolve(apiRoot, 'live')
+  const liveEventsRoot = resolve(liveRoot, 'events')
   await Promise.all([pokemonRoot, typeIndexRoot, generationIndexRoot, rarityIndexRoot, statusIndexRoot]
     .map((path) => mkdir(path, { recursive: true })))
   await mkdir(translationsRoot, { recursive: true })
+  await Promise.all([liveRoot, liveEventsRoot].map((path) => mkdir(path, { recursive: true })))
 
   const evolutions = dataset.forms.flatMap((form) =>
     form.evolutions.map((evolution) => ({ fromPokemonId: form.pokemonId, fromFormId: form.formId, ...evolution })),
@@ -159,6 +163,7 @@ export async function buildStaticApi(masterfile: Masterfile, output = resolve('p
   }
   const localized = translations(masterfile.translations)
   const pvp = pvpRankings(dataset)
+  const live = liveEndpoints(validateLiveData(liveData))
   const translationManifest = {
     defaultLocale: 'en',
     locales: Object.keys(localized).map((locale) => ({ locale, url: `translations/${locale}.json` })),
@@ -176,6 +181,15 @@ export async function buildStaticApi(masterfile: Masterfile, output = resolve('p
     writeJson(resolve(apiRoot, 'rankings.json'), combatRankings(dataset)),
     writeJson(resolve(apiRoot, 'pvp-rankings.json'), pvp),
     writeJson(resolve(apiRoot, 'pvp-movesets.json'), pvpMovesets(dataset, pvp)),
+    writeJson(resolve(liveRoot, 'meta.json'), live.manifest),
+    writeJson(resolve(liveRoot, 'events.json'), live.events),
+    writeJson(resolve(liveEventsRoot, 'active.json'), live.activeEvents),
+    writeJson(resolve(liveEventsRoot, 'upcoming.json'), live.upcomingEvents),
+    writeJson(resolve(liveEventsRoot, 'past.json'), live.pastEvents),
+    writeJson(resolve(liveRoot, 'raids.json'), live.raids),
+    writeJson(resolve(liveRoot, 'active-raids.json'), live.activeRaids),
+    writeJson(resolve(liveRoot, 'upcoming-raids.json'), live.upcomingRaids),
+    writeJson(resolve(liveRoot, 'calendar.json'), live.calendar),
     writeJson(resolve(apiRoot, 'temporary-evolutions.json'), temporaryEvolutions(dataset)),
     writeJson(resolve(apiRoot, 'items.json'), catalog(masterfile.items)),
     writeJson(resolve(apiRoot, 'quest-types.json'), catalog(masterfile.questTypes)),
@@ -223,7 +237,9 @@ async function newestRawFile() {
 async function main() {
   const input = process.argv[2] ? resolve(process.argv[2]) : ((await newestRawFile()) ?? resolve('data/sample/game-master.sample.json'))
   const masterfile = JSON.parse(await readFile(input, 'utf8')) as Masterfile
-  const metadata = await buildStaticApi(masterfile, resolve('public'), input)
+  const eventsFile = JSON.parse(await readFile(resolve('data/curated/events.json'), 'utf8')) as Pick<LiveData, 'timezone' | 'events'>
+  const raidsFile = JSON.parse(await readFile(resolve('data/curated/raid-bosses.json'), 'utf8')) as Pick<LiveData, 'raids'>
+  const metadata = await buildStaticApi(masterfile, resolve('public'), input, { timezone: eventsFile.timezone, events: eventsFile.events, raids: raidsFile.raids })
   console.log(`API ${metadata.apiVersion} generada desde ${input}: ${metadata.counts.pokemon} Pokémon`)
 }
 
