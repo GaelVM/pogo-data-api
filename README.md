@@ -67,6 +67,7 @@ https://gaelvm.github.io/pogo-data-api
 | `/v1/locales/{locale}/moves.json` | Movimientos localizados con fallback en inglés |
 | `/v1/locales/{locale}/types.json` | Tipos localizados |
 | `/v1/locales/{locale}/research.json` | Investigaciones traducidas con texto canónico y cobertura |
+| `/v1/locales/{locale}/rocket.json` | Team GO Rocket con frases, títulos, tipos y encuentros localizados |
 | `/v1/i18n/pokemon/{id}.json` | Nombres de una especie en todos los idiomas soportados |
 
 ### Datos dinámicos propios

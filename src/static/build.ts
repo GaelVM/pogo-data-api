@@ -15,6 +15,7 @@ import { raidGuides } from './raid-guides.js'
 import { ivCalculatorConfig, ivRankingFiles } from './iv-rankings.js'
 import { localizedCatalog, pokemonI18n, SUPPORTED_LOCALES } from './i18n.js'
 import { localizedResearch } from './research-i18n.js'
+import { localizedRocket } from './rocket-i18n.js'
 
 const API_VERSION = 'v1'
 
@@ -230,7 +231,8 @@ export async function buildStaticApi(masterfile: Masterfile, output = resolve('p
       return [writeJson(resolve(root, 'meta.json'), { locale: catalog.locale, fallbackLocale: catalog.fallbackLocale, counts: { pokemon: catalog.pokemon.length, forms: catalog.forms.length, moves: catalog.moves.length, types: catalog.types.length } }),
         writeJson(resolve(root, 'ui.json'), catalog.ui), writeJson(resolve(root, 'pokedex.json'), catalog.pokemon),
         writeJson(resolve(root, 'forms.json'), catalog.forms), writeJson(resolve(root, 'moves.json'), catalog.moves), writeJson(resolve(root, 'types.json'), catalog.types),
-        writeJson(resolve(root, 'research.json'), localizedResearch(dataDuck?.research ?? [], dataset, catalog.locale, new Map(catalog.pokemon.map((entry) => [entry.id, entry.name]))))]
+        writeJson(resolve(root, 'research.json'), localizedResearch(dataDuck?.research ?? [], dataset, catalog.locale, new Map(catalog.pokemon.map((entry) => [entry.id, entry.name])))),
+        writeJson(resolve(root, 'rocket.json'), localizedRocket(dataDuck?.rocket ?? [], dataset, catalog.locale, new Map(catalog.pokemon.map((entry) => [entry.id, entry.name]))))]
     }),
     ...dataset.pokemon.map((entry) => writeJson(resolve(i18nPokemonRoot, `${entry.id}.json`), pokemonI18n(entry.id, localeCatalogs))),
     ...['raids', 'eggs', 'research', 'rocket', 'events'].map((source) => writeJson(resolve(availabilityIndexRoot, `${source}.json`), availability.filter((entry) => entry.sources.includes(source)))),

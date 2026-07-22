@@ -29,6 +29,7 @@ describe('static API build', () => {
     const ivBulbasaur = JSON.parse(await readFile(resolve(output, 'v1/iv-rankings/great/1.json'), 'utf8'))
     const spanishTypes = JSON.parse(await readFile(resolve(output, 'v1/locales/es/types.json'), 'utf8'))
     const spanishResearch = JSON.parse(await readFile(resolve(output, 'v1/locales/es/research.json'), 'utf8'))
+    const spanishRocket = JSON.parse(await readFile(resolve(output, 'v1/locales/es/rocket.json'), 'utf8'))
 
     expect(meta.counts.pokemon).toBe(2)
     expect(bulbasaur.name).toBe('Bulbasaur')
@@ -55,5 +56,6 @@ describe('static API build', () => {
     expect(ivBulbasaur.rankings[0].rank).toBe(1)
     expect(spanishTypes.find((type: { slug: string }) => type.slug === 'grass').name).toBe('Planta')
     expect(spanishResearch.locale).toBe('es')
+    expect(spanishRocket.locale).toBe('es')
   })
 })

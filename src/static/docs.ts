@@ -37,6 +37,7 @@ const endpoints = [
   ['Idiomas', 'Movimientos en español', 'v1/locales/es/moves.json', 'Movimientos localizados con respaldo en inglés.'],
   ['Idiomas', 'Tipos en español', 'v1/locales/es/types.json', 'Catálogo localizado de los 18 tipos.'],
   ['Idiomas', 'Investigaciones en español', 'v1/locales/es/research.json', 'Tareas traducidas y recompensas relacionadas por Pokédex ID.'],
+  ['Idiomas', 'Rocket en español', 'v1/locales/es/rocket.json', 'Frases, títulos, tipos y encuentros del Team GO Rocket.'],
   ['Idiomas', 'Nombres por Pokémon', 'v1/i18n/pokemon/25.json', 'Nombres de una especie en todos los idiomas disponibles.'],
   ['Sistema', 'Metadatos', 'v1/meta.json', 'Versión, fuente, fecha y cantidades.'],
   ['Recursos', 'Explorador', 'v1/explorer.json', 'Índice compacto para construir interfaces visuales.'],
