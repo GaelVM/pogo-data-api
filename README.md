@@ -58,6 +58,8 @@ https://gaelvm.github.io/pogo-data-api
 | `/v1/changes/latest.json` | Resumen de los cambios detectados en el último despliegue |
 | `/v1/changes/{category}.json` | Altas, bajas y modificaciones en events, raids, eggs, research o rocket |
 | `/v1/history/index.json` | Índice de snapshots de cambios disponibles |
+| `/v1/raid-guides/index.json` | Índice de guías para los jefes de incursión actuales |
+| `/v1/raid-guides/{pokemonId}.json` | Debilidades, resistencias, CP, clima y mejores counters |
 
 ### Datos dinámicos propios
 
