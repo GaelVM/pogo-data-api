@@ -20,6 +20,16 @@ async function writeJson(path: string, value: unknown) {
   await writeFile(path, `${JSON.stringify(value, null, 2)}\n`, 'utf8')
 }
 
+function catalog(source: unknown) {
+  if (!source || typeof source !== 'object') return []
+  return Object.entries(source as Record<string, unknown>).map(([key, value]) => {
+    const numericId = Number(key)
+    const id = Number.isFinite(numericId) ? numericId : key
+    if (value !== null && typeof value === 'object') return { id, ...(value as Record<string, unknown>) }
+    return { id, name: value }
+  })
+}
+
 function pokemonDocuments(dataset: NormalizedDataset) {
   const formsByPokemon = new Map<number, NormalizedDataset['forms']>()
   for (const form of dataset.forms) {
@@ -89,6 +99,10 @@ code,a{color:#3157d5}li{margin:.55rem 0}.muted{color:#63708a}
 <li><a href="v1/combat.json"><code>/v1/combat.json</code></a></li>
 <li><a href="v1/rankings.json"><code>/v1/rankings.json</code></a></li>
 <li><a href="v1/temporary-evolutions.json"><code>/v1/temporary-evolutions.json</code></a></li>
+<li><a href="v1/items.json"><code>/v1/items.json</code></a></li>
+<li><a href="v1/weather.json"><code>/v1/weather.json</code></a></li>
+<li><a href="v1/invasions.json"><code>/v1/invasions.json</code></a></li>
+<li><a href="v1/raids.json"><code>/v1/raids.json</code></a></li>
 <li><a href="v1/meta.json"><code>/v1/meta.json</code></a></li>
 </ul><p>Cada Pokémon también está disponible en <code>/v1/pokemon/{id}.json</code>. Los índices precomputados están en <code>/v1/indexes/</code>.</p></section></body></html>`
 }
@@ -128,6 +142,15 @@ export async function buildStaticApi(masterfile: Masterfile, output = resolve('p
     writeJson(resolve(apiRoot, 'combat.json'), combatDataset(dataset)),
     writeJson(resolve(apiRoot, 'rankings.json'), combatRankings(dataset)),
     writeJson(resolve(apiRoot, 'temporary-evolutions.json'), temporaryEvolutions(dataset)),
+    writeJson(resolve(apiRoot, 'items.json'), catalog(masterfile.items)),
+    writeJson(resolve(apiRoot, 'quest-types.json'), catalog(masterfile.questTypes)),
+    writeJson(resolve(apiRoot, 'quest-conditions.json'), catalog(masterfile.questConditions)),
+    writeJson(resolve(apiRoot, 'quest-reward-types.json'), catalog(masterfile.questRewardTypes)),
+    writeJson(resolve(apiRoot, 'invasions.json'), catalog(masterfile.invasions)),
+    writeJson(resolve(apiRoot, 'weather.json'), catalog(masterfile.weather)),
+    writeJson(resolve(apiRoot, 'raids.json'), catalog(masterfile.raids)),
+    writeJson(resolve(apiRoot, 'teams.json'), catalog(masterfile.teams)),
+    writeJson(resolve(apiRoot, 'route-types.json'), catalog(masterfile.routeTypes)),
     writeJson(resolve(apiRoot, 'meta.json'), metadata),
     writeFile(resolve(output, 'index.html'), docsHtml(), 'utf8'),
     writeFile(resolve(output, '.nojekyll'), '', 'utf8'),

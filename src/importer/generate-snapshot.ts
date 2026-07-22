@@ -94,6 +94,15 @@ const template = {
       pvpBuffs: true,
     },
   },
+  items: { enabled: true },
+  questTypes: { enabled: true },
+  questConditions: { enabled: true },
+  questRewardTypes: { enabled: true },
+  invasions: { enabled: true },
+  weather: { enabled: true },
+  raids: { enabled: true },
+  teams: { enabled: true },
+  routeTypes: { enabled: true },
 } as unknown as NonNullable<Parameters<typeof generate>[0]>['template']
 
 const data = await generate({ template }) as Record<string, Record<string, unknown>>

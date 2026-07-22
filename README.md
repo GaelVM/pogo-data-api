@@ -23,6 +23,15 @@ https://gaelvm.github.io/pogo-data-api
 | `/v1/combat.json` | Estadísticas derivadas y CP máximo por cada forma |
 | `/v1/rankings.json` | Top 100 por ataque, defensa, stamina, bulk, producto estadístico y CP |
 | `/v1/temporary-evolutions.json` | Megaevoluciones y otras evoluciones temporales |
+| `/v1/items.json` | Objetos y requisitos de nivel |
+| `/v1/weather.json` | Climas y tipos potenciados |
+| `/v1/invasions.json` | Catálogo de invasiones del Team GO Rocket |
+| `/v1/raids.json` | Niveles de incursión |
+| `/v1/quest-types.json` | Tipos de misión |
+| `/v1/quest-conditions.json` | Condiciones de misión |
+| `/v1/quest-reward-types.json` | Tipos de recompensa |
+| `/v1/teams.json` | Equipos del juego |
+| `/v1/route-types.json` | Tipos de ruta |
 | `/v1/indexes/by-type/grass.json` | Índice precomputado por tipo |
 | `/v1/indexes/by-generation/1.json` | Índice precomputado por generación |
 | `/v1/meta.json` | Versión, fecha, fuente y cantidades |

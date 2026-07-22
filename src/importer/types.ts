@@ -102,4 +102,13 @@ export interface Masterfile {
   forms: Dictionary<{ formId: number; formName: string; proto?: string }>
   types: Dictionary<MasterType>
   moves: Dictionary<MasterMove>
+  items?: Dictionary<unknown>
+  questTypes?: Dictionary<unknown>
+  questConditions?: Dictionary<unknown>
+  questRewardTypes?: Dictionary<unknown>
+  invasions?: Dictionary<unknown>
+  weather?: Dictionary<unknown>
+  raids?: Dictionary<unknown>
+  teams?: Dictionary<unknown>
+  routeTypes?: Dictionary<unknown>
 }
