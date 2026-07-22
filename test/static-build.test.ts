@@ -24,6 +24,7 @@ describe('static API build', () => {
     const activeEvents = JSON.parse(await readFile(resolve(output, 'v1/live/events/active.json'), 'utf8'))
     const search = JSON.parse(await readFile(resolve(output, 'v1/search.json'), 'utf8'))
     const availability = JSON.parse(await readFile(resolve(output, 'v1/pokemon/1/availability.json'), 'utf8'))
+    const changes = JSON.parse(await readFile(resolve(output, 'v1/changes/latest.json'), 'utf8'))
 
     expect(meta.counts.pokemon).toBe(2)
     expect(bulbasaur.name).toBe('Bulbasaur')
@@ -44,5 +45,6 @@ describe('static API build', () => {
     expect(activeEvents).toEqual([])
     expect(search[0]).toMatchObject({ id: 1, name: 'Bulbasaur' })
     expect(availability.pokemonId).toBe(1)
+    expect(changes.hasPreviousSnapshot).toBe(false)
   })
 })

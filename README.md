@@ -55,6 +55,9 @@ https://gaelvm.github.io/pogo-data-api
 | `/v1/pokemon/{id}/availability.json` | Disponibilidad individual por número de Pokédex |
 | `/v1/indexes/by-availability/{source}.json` | Índices para raids, eggs, research, rocket y events |
 | `/v1/search.json` | Índice global para buscadores y autocompletado |
+| `/v1/changes/latest.json` | Resumen de los cambios detectados en el último despliegue |
+| `/v1/changes/{category}.json` | Altas, bajas y modificaciones en events, raids, eggs, research o rocket |
+| `/v1/history/index.json` | Índice de snapshots de cambios disponibles |
 
 ### Datos dinámicos propios
 
