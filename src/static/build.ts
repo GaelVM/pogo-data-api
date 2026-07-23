@@ -178,6 +178,8 @@ export async function buildStaticApi(masterfile: Masterfile, output = resolve('p
   }
   const localized = translations(masterfile.translations)
   const localeCatalogs = SUPPORTED_LOCALES.map((locale) => localizedCatalog(dataset, locale, localized[locale]))
+  const spanishCatalog = localeCatalogs.find((catalog) => catalog.locale === 'es')!
+  const spanishResearch = localizedResearch(dataDuck?.research ?? [], dataset, 'es', new Map(spanishCatalog.pokemon.map((entry) => [entry.id, entry.name])))
   const pvp = pvpRankings(dataset)
   const live = liveEndpoints(validateLiveData(liveData))
   const availability = availabilityDataset(dataset, dataDuck, live.events)
@@ -212,7 +214,8 @@ export async function buildStaticApi(masterfile: Masterfile, output = resolve('p
     writeJson(resolve(liveRoot, 'calendar.json'), live.calendar),
     writeJson(resolve(liveRoot, 'raid-bosses.json'), dataDuck?.raids ?? []),
     writeJson(resolve(liveRoot, 'eggs.json'), dataDuck?.eggs ?? []),
-    writeJson(resolve(liveRoot, 'research.json'), dataDuck?.research ?? []),
+    writeJson(resolve(liveRoot, 'research.json'), spanishResearch.research),
+    writeJson(resolve(liveRoot, 'research.en.json'), dataDuck?.research ?? []),
     writeJson(resolve(liveRoot, 'rocket.json'), dataDuck?.rocket ?? []),
     writeJson(resolve(liveRoot, 'dataduck-meta.json'), dataDuck?.meta ?? { source: 'GaelVM/DataDuck', available: false }),
     writeJson(resolve(apiRoot, 'availability.json'), availability),

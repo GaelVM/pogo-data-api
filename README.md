@@ -49,7 +49,8 @@ https://gaelvm.github.io/pogo-data-api
 | `/v1/live/calendar.json` | Calendario combinado de eventos e incursiones |
 | `/v1/live/raid-bosses.json` | Rotación actual de incursiones importada desde DataDuck |
 | `/v1/live/eggs.json` | Pools de huevos importados desde DataDuck |
-| `/v1/live/research.json` | Investigaciones actuales importadas desde DataDuck |
+| `/v1/live/research.json` | Investigaciones actuales traducidas al español |
+| `/v1/live/research.en.json` | Investigaciones originales importadas desde DataDuck en inglés |
 | `/v1/live/rocket.json` | Equipos del Team GO Rocket importados desde DataDuck |
 | `/v1/availability.json` | Disponibilidad unificada de todos los Pokémon |
 | `/v1/pokemon/{id}/availability.json` | Disponibilidad individual por número de Pokédex |
