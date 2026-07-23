@@ -1,14 +1,7 @@
 # PoGo Data API
 
-API JSON estática, propia y versionada de datos de Pokémon GO. Se genera y publica únicamente con GitHub Actions y GitHub Pages: no necesita Docker, PostgreSQL, Vercel ni un servidor encendido.
+API JSON estática, propia y versionada de datos de Pokémon GO. Se genera y publica únicamente con GitHub Actions.
 
-## Endpoints
-
-Cuando GitHub Pages esté habilitado, la URL base será:
-
-```text
-https://gaelvm.github.io/pogo-data-api
-```
 
 | Archivo | Contenido |
 | --- | --- |
