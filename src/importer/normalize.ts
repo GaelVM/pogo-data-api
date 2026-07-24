@@ -93,41 +93,52 @@ function field<T>(source: LooseRecord, ...names: string[]): T | undefined {
   return undefined
 }
 
-function normalizeTypes(source: unknown): Dictionary<{ typeId: number; typeName: string }> {
+function normalizeTypes(
+  source: unknown,
+  typeIdByName = new Map<string, number>(),
+): Dictionary<{ typeId: number; typeName: string }> {
   return Object.fromEntries(
     Object.entries(record(source)).flatMap(([key, value]) => {
       const item = record(value)
-      const typeId = Number(field(item, 'typeId', 'type_id') ?? key)
       const typeName = typeof value === 'string' ? value : field<string>(item, 'typeName', 'type_name', 'name')
+      const typeId = Number(
+        field(item, 'typeId', 'type_id')
+        ?? (typeName ? typeIdByName.get(makeSlug(typeName)) : undefined)
+        ?? key,
+      )
       return typeId > 0 && typeName ? [[String(typeId), { typeId, typeName }]] : []
     }),
   )
 }
 
-function normalizeMoveReferences(source: unknown): Dictionary<MasterMoveReference> {
+function normalizeMoveReferences(
+  source: unknown,
+  moveByName = new Map<string, MasterMoveReference>(),
+): Dictionary<MasterMoveReference> {
   return Object.fromEntries(
     Object.entries(record(source)).flatMap(([key, value]) => {
       const item = record(value)
-      const moveId = Number(field(item, 'moveId', 'move_id', 'id') ?? key)
       const moveName = typeof value === 'string' ? value : field<string>(item, 'moveName', 'move_name', 'name')
+      const catalogMove = moveName ? moveByName.get(makeSlug(moveName)) : undefined
+      const moveId = Number(field(item, 'moveId', 'move_id', 'id') ?? catalogMove?.moveId ?? key)
       if (!(moveId > 0) || !moveName) return []
       return [[String(moveId), {
         moveId,
         moveName,
-        proto: field(item, 'proto'),
-        type: field(item, 'typeId', 'type_id', 'type'),
-        power: field(item, 'power'),
-        energy: field(item, 'energy'),
-        duration: field(item, 'duration', 'durationMs', 'duration_ms'),
+        proto: field(item, 'proto') ?? catalogMove?.proto,
+        type: field(item, 'typeId', 'type_id', 'type') ?? catalogMove?.type,
+        power: field(item, 'power') ?? catalogMove?.power,
+        energy: field(item, 'energy') ?? catalogMove?.energy,
+        duration: field(item, 'duration', 'durationMs', 'duration_ms') ?? catalogMove?.duration,
       }]]
     }),
   )
 }
 
-function normalizeMoveField(source: unknown) {
+function normalizeMoveField(source: unknown, moveByName = new Map<string, MasterMoveReference>()) {
   const item = record(source)
-  if (field(item, 'moveId', 'move_id', 'id') !== undefined) return normalizeMoveReferences({ single: source })
-  return normalizeMoveReferences(source)
+  if (field(item, 'moveId', 'move_id', 'id') !== undefined) return normalizeMoveReferences({ single: source }, moveByName)
+  return normalizeMoveReferences(source, moveByName)
 }
 
 function normalizeEvolutions(source: unknown): Dictionary<MasterEvolution> {
@@ -147,7 +158,10 @@ function normalizeEvolutions(source: unknown): Dictionary<MasterEvolution> {
   )
 }
 
-function normalizeTemporaryEvolutions(source: unknown): Dictionary<MasterTemporaryEvolution> {
+function normalizeTemporaryEvolutions(
+  source: unknown,
+  typeIdByName = new Map<string, number>(),
+): Dictionary<MasterTemporaryEvolution> {
   const entries = Array.isArray(source) ? source.entries() : Object.entries(record(source))
   return Object.fromEntries([...entries].flatMap(([key, value]) => {
     const item = record(value)
@@ -157,7 +171,7 @@ function normalizeTemporaryEvolutions(source: unknown): Dictionary<MasterTempora
       id,
       attack: field(item, 'attack'), defense: field(item, 'defense'), stamina: field(item, 'stamina'),
       height: field(item, 'height'), weight: field(item, 'weight'),
-      typeIds: Object.values(normalizeTypes(item.types)).map((type) => type.typeId),
+      typeIds: Object.values(normalizeTypes(item.types, typeIdByName)).map((type) => type.typeId),
       unreleased: field(item, 'unreleased'),
       firstEnergyCost: field(item, 'firstEnergyCost', 'first_energy_cost'),
       subsequentEnergyCost: field(item, 'subsequentEnergyCost', 'subsequent_energy_cost'),
@@ -182,70 +196,6 @@ function stats(source: LooseRecord) {
 function adaptGeneratedMasterfile(input: Masterfile): Masterfile {
   const raw = input as unknown as LooseRecord
   const types = normalizeTypes(raw.types)
-  const pokemon = Object.fromEntries(
-    Object.entries(record(raw.pokemon)).flatMap(([key, value]) => {
-      const item = record(value)
-      const pokedexId = Number(field(item, 'pokedexId', 'pokedex_id') ?? key)
-      const name = field<string>(item, 'name', 'pokemonName', 'pokemon_name')
-      if (!(pokedexId > 0) || !name) return []
-      const forms = Object.fromEntries(Object.entries(record(item.forms)).map(([formKey, formValue]) => {
-        const form = record(formValue)
-        const formId = Number(field(form, 'form', 'formId', 'form_id') ?? formKey)
-        return [formKey, {
-          name: field<string>(form, 'name', 'formName', 'form_name') ?? 'Normal',
-          proto: field<string>(form, 'proto'),
-          form: formId,
-          isCostume: field<boolean>(form, 'isCostume', 'is_costume'),
-          stats: stats(form),
-          types: optionalDictionary(form.types, normalizeTypes),
-          quickMoves: optionalDictionary(field(form, 'quickMoves', 'quick_moves'), normalizeMoveReferences),
-          chargedMoves: optionalDictionary(field(form, 'chargedMoves', 'charged_moves'), normalizeMoveReferences),
-          eliteQuickMoves: optionalDictionary(field(form, 'eliteQuickMoves', 'elite_quick_moves'), normalizeMoveReferences),
-          eliteChargedMoves: optionalDictionary(field(form, 'eliteChargedMoves', 'elite_charged_moves'), normalizeMoveReferences),
-          gmaxMoves: optionalDictionary(field(form, 'gmaxMove', 'gmax_move'), normalizeMoveField),
-          evolutions: optionalDictionary(form.evolutions, normalizeEvolutions),
-          temporaryEvolutions: optionalDictionary(field(form, 'tempEvolutions', 'temp_evolutions'), normalizeTemporaryEvolutions),
-          height: field<number>(form, 'height'),
-          weight: field<number>(form, 'weight'),
-          purificationCandy: field(form, 'purificationCandy', 'purification_candy'),
-          purificationDust: field(form, 'purificationDust', 'purification_dust'),
-        }]
-      }))
-      return [[key, {
-        name,
-        pokedexId,
-        defaultFormId: field(item, 'defaultFormId', 'default_form_id'),
-        genId: field(item, 'genId', 'gen_id'),
-        generation: field(item, 'generation'),
-        family: field(item, 'family'),
-        legendary: field(item, 'legendary'),
-        mythic: field(item, 'mythic'),
-        ultraBeast: field(item, 'ultraBeast', 'ultra_beast'),
-        unreleased: field(item, 'unreleased'),
-        stats: stats(item),
-        types: optionalDictionary(item.types, normalizeTypes),
-        forms,
-        quickMoves: normalizeMoveReferences(field(item, 'quickMoves', 'quick_moves')),
-        chargedMoves: normalizeMoveReferences(field(item, 'chargedMoves', 'charged_moves')),
-        eliteQuickMoves: optionalDictionary(field(item, 'eliteQuickMoves', 'elite_quick_moves'), normalizeMoveReferences),
-        eliteChargedMoves: optionalDictionary(field(item, 'eliteChargedMoves', 'elite_charged_moves'), normalizeMoveReferences),
-        gmaxMoves: optionalDictionary(field(item, 'gmaxMove', 'gmax_move'), normalizeMoveField),
-        evolutions: optionalDictionary(item.evolutions, normalizeEvolutions),
-        temporaryEvolutions: optionalDictionary(field(item, 'tempEvolutions', 'temp_evolutions'), normalizeTemporaryEvolutions),
-        height: field(item, 'height'),
-        weight: field(item, 'weight'),
-        purificationCandy: field(item, 'purificationCandy', 'purification_candy'),
-        purificationDust: field(item, 'purificationDust', 'purification_dust'),
-        misc: {
-          buddyDistance: field(item, 'buddyDistance', 'buddy_distance'),
-          thirdMoveStardust: field(item, 'thirdMoveStardust', 'third_move_stardust'),
-          thirdMoveCandy: field(item, 'thirdMoveCandy', 'third_move_candy'),
-          tradable: field(item, 'tradable'),
-          transferable: field(item, 'transferable'),
-        },
-      }]]
-    }),
-  )
   const typeIdByName = new Map(Object.values(types).map((type) => [makeSlug(type.typeName), type.typeId]))
   const moves = Object.fromEntries(Object.entries(record(raw.moves)).flatMap(([key, value]) => {
     const item = record(value)
@@ -267,6 +217,81 @@ function adaptGeneratedMasterfile(input: Masterfile): Masterfile {
       pvpBuffs: field(item, 'pvpBuffs', 'pvp_buffs'),
     }]]
   }))
+  const moveByName = new Map<string, MasterMoveReference>(
+    Object.values(moves).map((move): [string, MasterMoveReference] => [makeSlug(move.name), {
+      moveId: move.id,
+      moveName: move.name,
+      proto: move.proto as string | undefined,
+      type: move.type,
+      power: move.power as number | undefined,
+      energy: move.energy as number | undefined,
+      duration: move.duration as number | undefined,
+    }]),
+  )
+  const pokemon = Object.fromEntries(
+    Object.entries(record(raw.pokemon)).flatMap(([key, value]) => {
+      const item = record(value)
+      const pokedexId = Number(field(item, 'pokedexId', 'pokedex_id') ?? key)
+      const name = field<string>(item, 'name', 'pokemonName', 'pokemon_name')
+      if (!(pokedexId > 0) || !name) return []
+      const forms = Object.fromEntries(Object.entries(record(item.forms)).map(([formKey, formValue]) => {
+        const form = record(formValue)
+        const formId = Number(field(form, 'form', 'formId', 'form_id') ?? formKey)
+        return [formKey, {
+          name: field<string>(form, 'name', 'formName', 'form_name') ?? 'Normal',
+          proto: field<string>(form, 'proto'),
+          form: formId,
+          isCostume: field<boolean>(form, 'isCostume', 'is_costume'),
+          stats: stats(form),
+          types: optionalDictionary(form.types, (source) => normalizeTypes(source, typeIdByName)),
+          quickMoves: optionalDictionary(field(form, 'quickMoves', 'quick_moves'), (source) => normalizeMoveReferences(source, moveByName)),
+          chargedMoves: optionalDictionary(field(form, 'chargedMoves', 'charged_moves'), (source) => normalizeMoveReferences(source, moveByName)),
+          eliteQuickMoves: optionalDictionary(field(form, 'eliteQuickMoves', 'elite_quick_moves'), (source) => normalizeMoveReferences(source, moveByName)),
+          eliteChargedMoves: optionalDictionary(field(form, 'eliteChargedMoves', 'elite_charged_moves'), (source) => normalizeMoveReferences(source, moveByName)),
+          gmaxMoves: optionalDictionary(field(form, 'gmaxMove', 'gmax_move'), (source) => normalizeMoveField(source, moveByName)),
+          evolutions: optionalDictionary(form.evolutions, normalizeEvolutions),
+          temporaryEvolutions: optionalDictionary(field(form, 'tempEvolutions', 'temp_evolutions'), (source) => normalizeTemporaryEvolutions(source, typeIdByName)),
+          height: field<number>(form, 'height'),
+          weight: field<number>(form, 'weight'),
+          purificationCandy: field(form, 'purificationCandy', 'purification_candy'),
+          purificationDust: field(form, 'purificationDust', 'purification_dust'),
+        }]
+      }))
+      return [[key, {
+        name,
+        pokedexId,
+        defaultFormId: field(item, 'defaultFormId', 'default_form_id'),
+        genId: field(item, 'genId', 'gen_id'),
+        generation: field(item, 'generation'),
+        family: field(item, 'family'),
+        legendary: field(item, 'legendary'),
+        mythic: field(item, 'mythic'),
+        ultraBeast: field(item, 'ultraBeast', 'ultra_beast'),
+        unreleased: field(item, 'unreleased'),
+        stats: stats(item),
+        types: optionalDictionary(item.types, (source) => normalizeTypes(source, typeIdByName)),
+        forms,
+        quickMoves: normalizeMoveReferences(field(item, 'quickMoves', 'quick_moves'), moveByName),
+        chargedMoves: normalizeMoveReferences(field(item, 'chargedMoves', 'charged_moves'), moveByName),
+        eliteQuickMoves: optionalDictionary(field(item, 'eliteQuickMoves', 'elite_quick_moves'), (source) => normalizeMoveReferences(source, moveByName)),
+        eliteChargedMoves: optionalDictionary(field(item, 'eliteChargedMoves', 'elite_charged_moves'), (source) => normalizeMoveReferences(source, moveByName)),
+        gmaxMoves: optionalDictionary(field(item, 'gmaxMove', 'gmax_move'), (source) => normalizeMoveField(source, moveByName)),
+        evolutions: optionalDictionary(item.evolutions, normalizeEvolutions),
+        temporaryEvolutions: optionalDictionary(field(item, 'tempEvolutions', 'temp_evolutions'), (source) => normalizeTemporaryEvolutions(source, typeIdByName)),
+        height: field(item, 'height'),
+        weight: field(item, 'weight'),
+        purificationCandy: field(item, 'purificationCandy', 'purification_candy'),
+        purificationDust: field(item, 'purificationDust', 'purification_dust'),
+        misc: {
+          buddyDistance: field(item, 'buddyDistance', 'buddy_distance'),
+          thirdMoveStardust: field(item, 'thirdMoveStardust', 'third_move_stardust'),
+          thirdMoveCandy: field(item, 'thirdMoveCandy', 'third_move_candy'),
+          tradable: field(item, 'tradable'),
+          transferable: field(item, 'transferable'),
+        },
+      }]]
+    }),
+  )
   return { pokemon, forms: {}, types, moves } as unknown as Masterfile
 }
 

@@ -102,4 +102,45 @@ describe('normalizeMasterfile', () => {
       metrics: { pveDps: 8.333, pveEnergyPerSecond: 13.333 },
     })
   })
+
+  it('resuelve tipos y movimientos cuando el generador entrega listas de nombres', () => {
+    const result = normalizeMasterfile({
+      pokemon: {
+        '1': {
+          pokedexId: 1,
+          name: 'Bulbasaur',
+          defaultFormId: 163,
+          types: ['Poison', 'Grass'],
+          quickMoves: ['Vine Whip', 'Tackle'],
+          chargedMoves: ['Seed Bomb'],
+          forms: {
+            '163': { name: 'Normal', form: 163 },
+          },
+        },
+      },
+      forms: {},
+      types: {
+        '1': 'Normal',
+        '4': 'Poison',
+        '12': 'Grass',
+      },
+      moves: {
+        '59': { id: 59, name: 'Seed Bomb', proto: 'SEED_BOMB', type: 'Grass', power: 55 },
+        '214': { id: 214, name: 'Vine Whip', proto: 'VINE_WHIP_FAST', type: 'Grass', power: 6 },
+        '221': { id: 221, name: 'Tackle', proto: 'TACKLE_FAST', type: 'Normal', power: 5 },
+      },
+    } as unknown as Masterfile)
+
+    expect(result.forms[0]?.typeIds).toEqual([4, 12])
+    expect(result.forms[0]?.moves).toEqual(expect.arrayContaining([
+      { moveId: 214, availability: 'NORMAL' },
+      { moveId: 221, availability: 'NORMAL' },
+      { moveId: 59, availability: 'NORMAL' },
+    ]))
+    expect(result.moves.find((move) => move.id === 214)).toMatchObject({
+      name: 'Vine Whip',
+      category: 'FAST',
+      typeId: 12,
+    })
+  })
 })
