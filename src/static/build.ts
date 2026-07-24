@@ -16,6 +16,7 @@ import { ivCalculatorConfig, ivRankingFiles } from './iv-rankings.js'
 import { localizedCatalog, pokemonI18n, SUPPORTED_LOCALES } from './i18n.js'
 import { localizedResearch } from './research-i18n.js'
 import { localizedRocket } from './rocket-i18n.js'
+import { localizedCalendar } from './calendar-i18n.js'
 
 const API_VERSION = 'v1'
 
@@ -163,7 +164,7 @@ export async function buildStaticApi(masterfile: Masterfile, output = resolve('p
   await Promise.all([pokemonRoot, typeIndexRoot, generationIndexRoot, rarityIndexRoot, statusIndexRoot]
     .map((path) => mkdir(path, { recursive: true })))
   await mkdir(translationsRoot, { recursive: true })
-  await Promise.all([liveRoot, liveEventsRoot, availabilityIndexRoot, changesRoot, historyRoot, raidGuidesRoot, ivRoot, localesRoot, i18nPokemonRoot, ...['great', 'ultra', 'master'].map((league) => resolve(ivRoot, league)), ...SUPPORTED_LOCALES.map((locale) => resolve(localesRoot, locale))].map((path) => mkdir(path, { recursive: true })))
+  await Promise.all([liveRoot, liveEventsRoot, availabilityIndexRoot, changesRoot, historyRoot, raidGuidesRoot, ivRoot, localesRoot, i18nPokemonRoot, ...['great', 'ultra', 'master'].map((league) => resolve(ivRoot, league)), ...SUPPORTED_LOCALES.flatMap((locale) => [resolve(localesRoot, locale), resolve(localesRoot, locale, 'live')])].map((path) => mkdir(path, { recursive: true })))
 
   const evolutions = dataset.forms.flatMap((form) =>
     form.evolutions.map((evolution) => ({ fromPokemonId: form.pokemonId, fromFormId: form.formId, ...evolution })),
@@ -234,6 +235,7 @@ export async function buildStaticApi(masterfile: Masterfile, output = resolve('p
       return [writeJson(resolve(root, 'meta.json'), { locale: catalog.locale, fallbackLocale: catalog.fallbackLocale, counts: { pokemon: catalog.pokemon.length, forms: catalog.forms.length, moves: catalog.moves.length, types: catalog.types.length } }),
         writeJson(resolve(root, 'ui.json'), catalog.ui), writeJson(resolve(root, 'pokedex.json'), catalog.pokemon),
         writeJson(resolve(root, 'forms.json'), catalog.forms), writeJson(resolve(root, 'moves.json'), catalog.moves), writeJson(resolve(root, 'types.json'), catalog.types),
+        writeJson(resolve(root, 'live/calendar.json'), localizedCalendar(live.calendar, catalog.locale)),
         writeJson(resolve(root, 'research.json'), localizedResearch(dataDuck?.research ?? [], dataset, catalog.locale, new Map(catalog.pokemon.map((entry) => [entry.id, entry.name])))),
         writeJson(resolve(root, 'rocket.json'), localizedRocket(dataDuck?.rocket ?? [], dataset, catalog.locale, new Map(catalog.pokemon.map((entry) => [entry.id, entry.name]))))]
     }),
