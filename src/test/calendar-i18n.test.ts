@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { localizedCalendar, translateCalendarText } from '../src/static/calendar-i18n.js'
+import { localizedCalendar, translateCalendarText } from '../static/calendar-i18n.js'
 
 describe('calendar localization', () => {
   it('translates common Pokémon GO event names', () => {
