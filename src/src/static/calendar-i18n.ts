@@ -1,5 +1,5 @@
-import type { SupportedLocale } from './i18n.js'
-import { translateResearchText } from './research-i18n.js'
+import type { SupportedLocale } from '../../static/i18n.js'
+import { translateResearchText } from '../../static/research-i18n.js'
 
 type JsonObject = Record<string, unknown>
 

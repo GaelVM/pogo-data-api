@@ -16,7 +16,7 @@ import { ivCalculatorConfig, ivRankingFiles } from './iv-rankings.js'
 import { localizedCatalog, pokemonI18n, SUPPORTED_LOCALES } from './i18n.js'
 import { localizedResearch } from './research-i18n.js'
 import { localizedRocket } from './rocket-i18n.js'
-import { localizedCalendar } from './calendar-i18n.js'
+import { localizedCalendar } from '../src/static/calendar-i18n.js'
 
 const API_VERSION = 'v1'
 
