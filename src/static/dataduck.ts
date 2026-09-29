@@ -7,8 +7,8 @@ export interface DataDuckEvent {
   heading?: string
   link?: string
   image?: string
-  start: string
-  end: string
+  start: string | null
+  end: string | null
   extraData?: unknown
 }
 
@@ -26,16 +26,25 @@ function zonedDate(value: string, utcOffset = '-05:00') {
 }
 
 export function dataDuckEvents(events: DataDuckEvent[], utcOffset = '-05:00'): LiveEvent[] {
-  return events.map((event) => ({
-    id: event.eventID,
-    name: event.name,
-    eventType: event.eventType,
-    startsAt: zonedDate(event.start, utcOffset),
-    endsAt: zonedDate(event.end, utcOffset),
-    description: event.heading,
-    sourceUrl: event.link,
-    imageUrl: event.image,
-    extraData: event.extraData,
-  }))
-}
+  return events.flatMap((event) => {
+    if (typeof event.start !== 'string' || typeof event.end !== 'string') return []
 
+    const startsAt = zonedDate(event.start, utcOffset)
+    const endsAt = zonedDate(event.end, utcOffset)
+    const start = Date.parse(startsAt)
+    const end = Date.parse(endsAt)
+    if (!Number.isFinite(start) || !Number.isFinite(end) || start >= end) return []
+
+    return [{
+      id: event.eventID,
+      name: event.name,
+      eventType: event.eventType,
+      startsAt,
+      endsAt,
+      description: event.heading,
+      sourceUrl: event.link,
+      imageUrl: event.image,
+      extraData: event.extraData,
+    }]
+  })
+}
